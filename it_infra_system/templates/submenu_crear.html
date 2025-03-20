@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="submenu-container">
+    <h1 class="submenu-title">
+        <i class="fas fa-plus-circle"></i>
+        Crear Nuevo
+    </h1>
+
+    <div class="button-grid">
+        <a href="{% url 'create_ambiente' %}" class="menu-button">
+            <i class="fas fa-server"></i>
+            <div class="button-text">
+                <h3>Ambiente</h3>
+                <p>Crear nuevo ambiente de infraestructura</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_user' %}" class="menu-button">
+            <i class="fas fa-user-plus"></i>
+            <div class="button-text">
+                <h3>Usuario</h3>
+                <p>Crear nuevo usuario del sistema</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_perfil' %}" class="menu-button">
+            <i class="fas fa-id-card"></i>
+            <div class="button-text">
+                <h3>Perfil</h3>
+                <p>Crear nuevo perfil de usuario</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_cloud' %}" class="menu-button">
+            <i class="fas fa-cloud"></i>
+            <div class="button-text">
+                <h3>Cloud</h3>
+                <p>Crear nuevo proveedor de cloud</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_solicitante' %}" class="menu-button">
+            <i class="fas fa-user-tie"></i>
+            <div class="button-text">
+                <h3>Solicitante</h3>
+                <p>Crear nuevo solicitante de infraestructura</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_gerencia' %}" class="menu-button">
+            <i class="fas fa-building"></i>
+            <div class="button-text">
+                <h3>Gerencia</h3>
+                <p>Crear nueva gerencia en el sistema</p>
+            </div>
+        </a>
+
+        <a href="{% url 'create_puesto' %}" class="menu-button">
+            <i class="fas fa-user-tie"></i>
+            <div class="button-text">
+                <h3>Puesto</h3>
+                <p>Crear nuevo puesto en el sistema</p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    .submenu-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .submenu-title {
+        color: var(--dark-gray);
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .menu-button {
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-decoration: none;
+        color: var(--dark-gray);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .menu-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--claro-red);
+        color: var(--claro-red);
+    }
+
+    .menu-button i {
+        font-size: 2rem;
+        color: var(--claro-red);
+    }
+
+    .button-text {
+        flex: 1;
+    }
+
+    .button-text h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .button-text p {
+        margin: 0.5rem 0 0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    @media (max-width: 768px) {
+        .button-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .menu-button {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

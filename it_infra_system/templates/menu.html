@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="menu-container">
+    <h1 class="menu-title">Menú Principal</h1>
+    
+    <div class="menu-grid">
+        <a href="/submenu_crear" class="menu-btn">
+            <i class="fas fa-plus-circle"></i>
+            Crear
+        </a>
+        <a href="/submenu_listar" class="menu-btn">
+            <i class="fas fa-list"></i>
+            Listar
+        </a>
+        <a href="/settings" class="menu-btn">
+            <i class="fas fa-cog"></i>
+            Configuración
+        </a>
+        <a href="/reports" class="menu-btn">
+            <i class="fas fa-chart-bar"></i>
+            Reportes
+        </a>
+    </div>
+</div>
+
+<style>
+    .menu-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .menu-title {
+        color: var(--claro-red);
+        margin-bottom: 3rem;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        justify-content: center;
+    }
+
+    .menu-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--white);
+        color: var(--claro-red);
+        padding: 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 2px solid var(--claro-red);
+        min-height: 150px;
+    }
+
+    .menu-btn:hover {
+        background-color: var(--claro-red);
+        color: var(--white);
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(226, 10, 22, 0.2);
+    }
+
+    .menu-btn i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .menu-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .menu-btn {
+            min-height: 120px;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+

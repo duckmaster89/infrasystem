@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Header con logo de Claro -->
+    <div class="header-section">
+        <img src="https://www.claro.com.gt/content/dam/claro-gt/logos/logo-claro-blanco.svg" alt="Claro Guatemala" class="claro-logo">
+        <h1 class="main-title">Sistema de Gestión de Infraestructura</h1>
+        {% if user.is_authenticated %}
+        <p class="welcome-message">Bienvenido, {{user.username}}</p>
+        {% endif %}
+    </div>
+
+    <!-- Sección de nubes y arquitectura -->
+    <div class="cloud-section">
+        <div class="cloud-providers">
+            <div class="provider-card aws">
+                <i class="fab fa-aws"></i>
+                <span>Amazon Web Services</span>
+            </div>
+            <div class="provider-card azure">
+                <i class="fab fa-microsoft"></i>
+                <span>Microsoft Azure</span>
+            </div>
+            <div class="provider-card oci">
+                <img src="https://www.oracle.com/a/ocom/img/rc30v1-oracle-cloud.svg" alt="Oracle Cloud" class="oci-logo">
+                <span>Oracle Cloud</span>
+            </div>
+        </div>
+
+        <div class="architecture-illustration">
+            <div class="arch-element servers">
+                <i class="fas fa-server"></i>
+                <span>Infraestructura</span>
+            </div>
+            <div class="arch-element network">
+                <i class="fas fa-network-wired"></i>
+                <span>Redes</span>
+            </div>
+            <div class="arch-element security">
+                <i class="fas fa-shield-alt"></i>
+                <span>Seguridad</span>
+            </div>
+            <div class="arch-element monitoring">
+                <i class="fas fa-chart-line"></i>
+                <span>Monitoreo</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="action-buttons">
+        {% if user.is_authenticated %}
+        <a href="/menu" class="menu-btn">
+            <i class="fas fa-th-large"></i>
+            Ir al Menú Principal
+        </a>
+        <form action="{% url 'signout' %}" method="POST" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Cerrar Sesión
+            </button>
+        </form>
+        {% else %}
+        <a href="/signin" class="signin-btn">
+            <i class="fas fa-sign-in-alt"></i>
+            Iniciar Sesión
+        </a>
+        <a href="/signup" class="signup-btn">
+            <i class="fas fa-user-plus"></i>
+            Registrarse
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Footer con copyright -->
+    <footer class="footer">
+        <div class="copyright">
+            <p>© {% now "Y" %} Sistema de Gestión de Infraestructura</p>
+            <p class="designer">Diseñado y Desarrollado por Ing. Bryan Bernal</p>
+        </div>
+    </footer>
+</div>
+
+<style>
+    .home-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: white;
+    }
+
+    .header-section {
+        text-align: center;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .claro-logo {
+        height: 60px;
+        margin-bottom: 1rem;
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+        color: var(--claro-red);
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .cloud-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3rem;
+        padding: 2rem;
+    }
+
+    .cloud-providers {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .provider-card {
+        background: rgba(255,255,255,0.1);
+        padding: 2rem;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 200px;
+        backdrop-filter: blur(5px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .provider-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .provider-card i {
+        font-size: 3rem;
+    }
+
+    .provider-card span {
+        font-weight: bold;
+    }
+
+    .aws i {
+        color: #FF9900;
+    }
+
+    .azure i {
+        color: #00A4EF;
+    }
+
+    .oci-logo {
+        height: 48px;
+    }
+
+    .architecture-illustration {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 2rem;
+        width: 100%;
+        max-width: 800px;
+        margin-top: 2rem;
+    }
+
+    .arch-element {
+        background: rgba(226, 10, 22, 0.1);
+        padding: 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .arch-element:hover {
+        background: rgba(226, 10, 22, 0.2);
+        transform: translateY(-5px);
+    }
+
+    .arch-element i {
+        font-size: 2rem;
+        color: var(--claro-red);
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+
+    .signin-btn, .signup-btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .signin-btn {
+        background-color: var(--claro-red);
+    }
+
+    .signin-btn:hover {
+        background-color: var(--claro-dark-red);
+        transform: translateY(-2px);
+    }
+
+    .signup-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .signup-btn:hover {
+        background-color: #555;
+        transform: translateY(-2px);
+    }
+
+    .footer {
+        text-align: center;
+        padding: 2rem;
+        background: rgba(0,0,0,0.2);
+    }
+
+    .copyright {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+
+    .designer {
+        color: var(--claro-red);
+        font-weight: bold;
+        margin-top: 0.5rem;
+    }
+
+    .welcome-message {
+        color: white;
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        opacity: 0.9;
+    }
+
+    .menu-btn, .logout-btn {
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .menu-btn {
+        background-color: var(--claro-red);
+    }
+
+    .menu-btn:hover {
+        background-color: var(--claro-dark-red);
+        transform: translateY(-2px);
+    }
+
+    .logout-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .logout-btn:hover {
+        background-color: #555;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .header-section {
+            padding: 1rem;
+        }
+
+        .main-title {
+            font-size: 1.8rem;
+        }
+
+        .cloud-providers {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .provider-card {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+            padding: 0 1rem;
+        }
+
+        .signin-btn, .signup-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .menu-btn, .logout-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

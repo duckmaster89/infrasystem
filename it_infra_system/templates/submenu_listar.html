@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1><i class="fas fa-list"></i> Listar</h1>
+    <div class="button-grid">
+        <a href="{% url 'list_ambiente' %}" class="menu-button">
+            <i class="fas fa-server"></i>
+            <span class="button-title">Ambientes</span>
+            <span class="button-description">Ver lista de ambientes</span>
+        </a>
+        <a href="{% url 'list_users' %}" class="menu-button">
+            <i class="fas fa-users"></i>
+            <span class="button-title">Usuarios</span>
+            <span class="button-description">Ver lista de usuarios</span>
+        </a>
+        <a href="{% url 'list_perfiles' %}" class="menu-button">
+            <i class="fas fa-user-shield"></i>
+            <span class="button-title">Perfiles</span>
+            <span class="button-description">Ver lista de perfiles</span>
+        </a>
+        <a href="{% url 'list_clouds' %}" class="menu-button">
+            <i class="fas fa-cloud"></i>
+            <span class="button-title">Clouds</span>
+            <span class="button-description">Ver lista de clouds</span>
+        </a>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .button-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .menu-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--white);
+        color: var(--claro-red);
+        padding: 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 2px solid var(--claro-red);
+        min-height: 200px;
+        gap: 1rem;
+    }
+
+    .menu-button:hover {
+        background-color: var(--claro-red);
+        color: var(--white);
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(226, 10, 22, 0.2);
+    }
+
+    .menu-button i {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .button-title {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+
+    .button-description {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        max-width: 200px;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 768px) {
+        .button-grid {
+            grid-template-columns: 1fr;
+            max-width: 400px;
+            margin: 0 auto 2rem auto;
+        }
+
+        .menu-button {
+            min-height: 180px;
+        }
+
+        .container {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

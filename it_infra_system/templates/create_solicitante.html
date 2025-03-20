@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus"></i>
+                        Crear Nuevo Solicitante
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.nombre_solicitante.id_for_label }}">{{ form.nombre_solicitante.label }}</label>
+                            {{ form.nombre_solicitante }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.puesto_solicitante.id_for_label }}">{{ form.puesto_solicitante.label }}</label>
+                            {{ form.puesto_solicitante }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.email_solicitante.id_for_label }}">{{ form.email_solicitante.label }}</label>
+                            {{ form.email_solicitante }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.tel_solicitante.id_for_label }}">{{ form.tel_solicitante.label }}</label>
+                            {{ form.tel_solicitante }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                Guardar Solicitante
+                            </button>
+                            <a href="{% url 'submenu_crear' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, var(--claro-red) 0%, var(--claro-dark-red) 100%) !important;
+        padding: 1.5rem;
+    }
+    
+    .card-header h3 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 0.2rem rgba(226, 10, 22, 0.25);
+    }
+    
+    .btn {
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background-color: var(--claro-red);
+        border-color: var(--claro-red);
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--claro-dark-red);
+        border-color: var(--claro-dark-red);
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+        transform: translateY(-2px);
+    }
+    
+    .alert {
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+{% endblock %} 

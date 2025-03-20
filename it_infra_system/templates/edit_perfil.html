@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="edit-container">
+    <h1 class="edit-title">Editar Perfil</h1>
+
+    {% if error %}
+    <div class="error-message">
+        {{error}}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="edit-form">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="nombre_perfil">Nombre del Perfil</label>
+                <input type="text" name="nombre_perfil" id="nombre_perfil" value="{{perfil.nombre_perfil}}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion_perfil">Descripción</label>
+                <textarea name="descripcion_perfil" id="descripcion_perfil" rows="4" required>{{perfil.descripcion_perfil}}</textarea>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn submit-btn">
+                <i class="fas fa-save"></i>
+                Guardar Cambios
+            </button>
+            <a href="/list/perfiles" class="btn cancel-btn">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .edit-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .edit-title {
+        color: var(--claro-red);
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .edit-form {
+        background-color: var(--white);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        color: var(--dark-gray);
+        font-weight: bold;
+        font-size: 1rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 2px rgba(226, 10, 22, 0.1);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+
+    .submit-btn,
+    .cancel-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn {
+        background-color: var(--claro-red);
+    }
+
+    .submit-btn:hover {
+        background-color: var(--claro-dark-red);
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .cancel-btn:hover {
+        background-color: #555;
+        transform: translateY(-2px);
+    }
+
+    .error-message {
+        background-color: #fff2f2;
+        border: 1px solid #ffdbdb;
+        color: var(--claro-red);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .edit-container {
+            padding: 1rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+        .submit-btn,
+        .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Infrastructure System - Claro Guatemala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        :root {
+            --claro-red: #E20A16;
+            --claro-dark-red: #B30811;
+            --dark-gray: #333333;
+            --light-gray: #F5F5F5;
+            --white: #FFFFFF;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: var(--light-gray);
+        }
+
+        .navbar {
+            background-color: var(--white);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            color: var(--claro-red);
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-nav {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--claro-red);
+        }
+
+        .nav-link.active {
+            color: var(--claro-red);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .logout-btn {
+            background-color: var(--claro-red);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: var(--claro-dark-red);
+        }
+
+        .container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Estilos actualizados para los mensajes */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .toast.success {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .toast.error {
+            background-color: #fff2f2;
+            border: 1px solid #ffdbdb;
+            color: var(--claro-red);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .navbar-nav {
+                margin-top: 1rem;
+                flex-direction: column;
+                width: 100%;
+                gap: 1rem;
+            }
+
+            .nav-link {
+                width: 100%;
+                justify-content: center;
+                padding: 0.5rem;
+            }
+
+            .logout-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .toast-container {
+                width: 100%;
+                right: 0;
+                top: 0;
+                padding: 1rem;
+            }
+
+            .toast {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div class="toast-container">
+        {% for message in messages %}
+        <div class="toast {% if message.tags %}{{ message.tags }}{% endif %}" role="alert" style="opacity: 1;">
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-exclamation-circle"></i>
+            {% endif %}
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if user.is_authenticated and request.path != '/' %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">IT Infrastructure System</a>
+            <div class="d-flex">
+                <a href="{% url 'menu' %}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-th-large"></i> Menú Principal
+                </a>
+                <form method="POST" action="{% url 'signout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toasts = document.querySelectorAll('.toast');
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.5s ease forwards';
+                toast.addEventListener('animationend', function(e) {
+                    if (e.animationName === 'slideOut') {
+                        toast.remove();
+                    }
+                });
+            }, 3000);
+        });
+    });
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    </script>
+</body>
+</html>

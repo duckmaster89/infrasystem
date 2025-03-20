@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-user-tie"></i> Lista de Solicitantes</h1>
+        <a href="{% url 'submenu_listar' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+
+    {% if solicitantes %}
+        <div class="data-grid">
+            {% for solicitante in solicitantes %}
+                <div class="data-card">
+                    <div class="card-header">
+                        <i class="fas fa-user-tie"></i>
+                        <h3>{{ solicitante.nombre_solicitante }}</h3>
+                    </div>
+                    <div class="card-content">
+                        <p><strong>Puesto:</strong> {{ solicitante.puesto_solicitante }}</p>
+                        <p><strong>Email:</strong> {{ solicitante.email_solicitante }}</p>
+                        <p><strong>Teléfono:</strong> {{ solicitante.tel_solicitante }}</p>
+                        <p><strong>Creado por:</strong> {{ solicitante.user_create.username }}</p>
+                        <p><strong>Fecha de creación:</strong> {{ solicitante.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'edit_solicitante' solicitante.id_solicitante %}" class="edit-button">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'delete_solicitante' solicitante.id_solicitante %}" class="delete-button" onclick="return confirm('¿Está seguro de que desea eliminar este solicitante?')">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-data">
+            <i class="fas fa-info-circle"></i>
+            <p>No hay solicitantes registrados.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .header h1 {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--claro-red);
+        margin: 0;
+    }
+
+    .back-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background-color: var(--claro-red);
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .back-button:hover {
+        background-color: var(--dark-red);
+    }
+
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .data-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+
+    .data-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        background-color: var(--claro-red);
+        color: white;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .card-header i {
+        font-size: 1.5rem;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .card-content {
+        padding: 1rem;
+    }
+
+    .card-content p {
+        margin: 0.5rem 0;
+        color: #666;
+    }
+
+    .card-actions {
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .edit-button, .delete-button {
+        flex: 1;
+        padding: 0.5rem;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: background-color 0.3s;
+    }
+
+    .edit-button {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .edit-button:hover {
+        background-color: #45a049;
+    }
+
+    .delete-button {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .delete-button:hover {
+        background-color: #da190b;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .no-data p {
+        color: #666;
+        font-size: 1.2rem;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .data-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .card-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %} 

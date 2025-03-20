@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="list-container">
+    <h1 class="list-title">Lista de Perfiles</h1>
+
+    {% if error %}
+    <div class="error-message">
+        {{error}}
+    </div>
+    {% endif %}
+
+    {% if perfiles %}
+    <div class="grid-container">
+        {% for perfil in perfiles %}
+        <div class="grid-item">
+            <div class="item-header">
+                <i class="fas fa-user-tag"></i>
+                <h2>{{perfil.nombre_perfil}}</h2>
+            </div>
+            <div class="item-body">
+                <p class="description">{{perfil.descripcion_perfil}}</p>
+                <p class="date">Creado el: {{perfil.fecha_creacion|date:"d/m/Y H:i"}}</p>
+                <p class="creator">Creado por: {{perfil.user_create.username|default:"No especificado"}}</p>
+            </div>
+            <div class="item-footer">
+                <a href="/edit/perfil/{{perfil.id_perfil}}" class="btn edit-btn">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                </a>
+                <button onclick="confirmarEliminacion({{perfil.id_perfil}}, '{{perfil.nombre_perfil}}')" class="btn delete-btn">
+                    <i class="fas fa-trash"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-data">
+        <i class="fas fa-info-circle"></i>
+        <p>No hay perfiles registrados</p>
+    </div>
+    {% endif %}
+
+    <div class="action-buttons">
+        <a href="/create/perfil" class="btn create-btn">
+            <i class="fas fa-plus"></i>
+            Crear Nuevo Perfil
+        </a>
+        <a href="/submenu_listar" class="btn back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Volver
+        </a>
+    </div>
+</div>
+
+<style>
+    .list-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .list-title {
+        color: var(--claro-red);
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .grid-item {
+        background-color: var(--white);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .grid-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .item-header {
+        background-color: var(--claro-red);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .item-header i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .item-header h2 {
+        font-size: 1.5rem;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .item-body {
+        padding: 1.5rem;
+    }
+
+    .description {
+        color: var(--dark-gray);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .date {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+
+    .creator {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+
+    .item-footer {
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .edit-btn,
+    .delete-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .edit-btn {
+        background-color: #4CAF50;
+    }
+
+    .edit-btn:hover {
+        background-color: #45a049;
+    }
+
+    .delete-btn {
+        background-color: #f44336;
+    }
+
+    .delete-btn:hover {
+        background-color: #da190b;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .create-btn,
+    .back-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+    }
+
+    .create-btn {
+        background-color: var(--claro-red);
+    }
+
+    .create-btn:hover {
+        background-color: var(--claro-dark-red);
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 3rem;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        color: #666;
+    }
+
+    .no-data i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--claro-red);
+    }
+
+    .error-message {
+        background-color: #fff2f2;
+        border: 1px solid #ffdbdb;
+        color: var(--claro-red);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    @media (max-width: 768px) {
+        .list-container {
+            padding: 1rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .create-btn,
+        .back-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+function confirmarEliminacion(id, nombre) {
+    if (confirm(`¿Está seguro que desea eliminar el perfil "${nombre}"?`)) {
+        window.location.href = `/delete/perfil/${id}`;
+    }
+}
+</script>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

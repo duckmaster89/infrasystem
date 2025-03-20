@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="create-container">
+    <h1 class="create-title">Crear Nueva Gerencia</h1>
+
+    <form method="POST" class="create-form">
+        {% csrf_token %}
+        <div class="form-fields">
+            <p>
+                <label for="{{ form.nombre_gerencia.id_for_label }}">{{ form.nombre_gerencia.label }}</label>
+                {{ form.nombre_gerencia }}
+                {% if form.nombre_gerencia.errors %}
+                <span class="error-text">{{ form.nombre_gerencia.errors }}</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="button-group">
+            <button type="submit" class="btn submit-btn">
+                <i class="fas fa-save"></i>
+                Guardar Gerencia
+            </button>
+            <a href="{% url 'submenu_crear' %}" class="btn cancel-btn">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .create-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+        position: relative;
+    }
+
+    .create-title {
+        color: var(--claro-red);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .create-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        background-color: var(--white);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+    }
+
+    .form-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .create-form p {
+        margin: 0;
+    }
+
+    .create-form label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--dark-gray);
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .create-form input,
+    .create-form select,
+    .create-form textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .create-form input:focus,
+    .create-form select:focus,
+    .create-form textarea:focus {
+        outline: none;
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 2px rgba(226, 10, 22, 0.1);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .submit-btn,
+    .cancel-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn {
+        background-color: var(--claro-red);
+    }
+
+    .submit-btn:hover {
+        background-color: var(--claro-dark-red);
+    }
+
+    .cancel-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .cancel-btn:hover {
+        background-color: #555;
+    }
+
+    .error-text {
+        color: var(--claro-red);
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .create-container {
+            padding: 1rem;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+        .create-form {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %} 
