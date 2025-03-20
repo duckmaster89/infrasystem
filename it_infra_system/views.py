@@ -327,7 +327,7 @@ def edit_user(request, user_id):
             
             # Si el usuario editó su propia contraseña, necesita volver a iniciar sesión
             if request.POST.get('password1') and request.user.id == user_id:
-                logout(request)
+    logout(request)
                 return redirect('signin')
             
             return redirect('list_users')
@@ -461,8 +461,8 @@ def create_cloud(request):
         ambientes = AMBIENTE.objects.all().order_by('nombre_ambiente')
         return render(request, 'create_cloud.html', {
             'ambientes': ambientes
-        })
-    else:
+            })
+        else:
         try:
             # Crear el cloud
             cloud = CLOUD.objects.create(
