@@ -78,13 +78,16 @@ class CLOUD(models.Model):
         return f"{self.siglas_cloud} - {self.nombre_cloud}"
 
 class SOLICITANTE(models.Model):
-    id_solicitante = models.AutoField(primary_key=True)
+    id_solicitante = models.IntegerField(primary_key=True)
     nombre_solicitante = models.CharField(max_length=100)
-    puesto_solicitante = models.CharField(max_length=100)
+    puesto_solicitante = models.CharField(max_length=100, blank=True, null=True)
     email_solicitante = models.EmailField()
     tel_solicitante = models.CharField(max_length=20)
     user_create = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    puesto = models.ForeignKey('PUESTO', on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitantes')
+    gerencia = models.ForeignKey('GERENCIA', on_delete=models.SET_NULL, null=True, blank=True, related_name='solicitantes')
 
     def __str__(self):
         return self.nombre_solicitante

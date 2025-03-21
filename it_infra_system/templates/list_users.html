@@ -26,6 +26,14 @@
                 </div>
                 <p><strong>Fecha de registro:</strong> {{info.user.date_joined|date:"d/m/Y"}}</p>
                 <p><strong>Estado:</strong> {% if info.user.is_active %}Activo{% else %}Inactivo{% endif %}</p>
+                {% if info.ultima_modificacion %}
+                <p class="last-modified">
+                    <strong>Última modificación:</strong><br>
+                    Por: {{info.ultima_modificacion.usuario.username}}<br>
+                    Acción: {{info.ultima_modificacion.get_tipo_accion_display}}<br>
+                    Fecha: {{info.ultima_modificacion.fecha_hora|date:"d/m/Y H:i"}}
+                </p>
+                {% endif %}
             </div>
 
             <div class="action-buttons">
@@ -138,81 +146,91 @@
         color: var(--dark-gray);
     }
 
+    .last-modified {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
     .action-buttons {
         display: flex;
         gap: 1rem;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #eee;
+        margin-top: auto;
+        flex-wrap: wrap;
     }
 
-    .edit-btn,
-    .delete-btn {
-        flex: 1;
-        display: flex;
+    .btn {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
-        padding: 0.75rem;
-        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
         transition: all 0.3s ease;
     }
 
     .edit-btn {
-        background-color: #4CAF50;
+        background-color: var(--claro-red);
+        color: white;
     }
 
     .edit-btn:hover {
-        background-color: #45a049;
-        transform: translateY(-2px);
+        background-color: #c41230;
     }
 
     .delete-btn {
-        background-color: #f44336;
+        background-color: #dc3545;
+        color: white;
     }
 
     .delete-btn:hover {
-        background-color: #da190b;
-        transform: translateY(-2px);
+        background-color: #bb2d3b;
+    }
+
+    .create-btn {
+        background-color: #198754;
+        color: white;
+    }
+
+    .create-btn:hover {
+        background-color: #157347;
+    }
+
+    .back-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #5c636a;
+    }
+
+    .current-user-label {
+        background-color: #0dcaf0;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .no-permission-label {
+        color: #6c757d;
+        font-style: italic;
     }
 
     .action-bar {
         display: flex;
         gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .create-btn {
-        background-color: var(--claro-red);
-        padding: 0.75rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .create-btn:hover {
-        background-color: var(--claro-dark-red);
-        transform: translateY(-2px);
-    }
-
-    .back-btn {
-        background-color: var(--dark-gray);
-        padding: 0.75rem 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .back-btn:hover {
-        background-color: #555;
-        transform: translateY(-2px);
+        justify-content: center;
+        margin-top: 2rem;
     }
 
     .error-message {
-        background-color: #fff2f2;
-        border: 1px solid #ffdbdb;
-        color: var(--claro-red);
+        background-color: #f8d7da;
+        color: #842029;
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 2rem;
@@ -221,46 +239,9 @@
 
     .no-data-message {
         text-align: center;
-        padding: 2rem;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-        color: var(--dark-gray);
-    }
-
-    .current-user-label {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: #e9ecef;
-        color: var(--dark-gray);
-        border-radius: 4px;
-        text-align: center;
-        width: 100%;
-    }
-
-    .no-permission-label {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background-color: #f8d7da;
-        color: #721c24;
-        border-radius: 4px;
-        text-align: center;
-        width: 100%;
-    }
-
-    @media (max-width: 768px) {
-        .list-container {
-            padding: 1rem;
-        }
-
-        .grid-container {
-            grid-template-columns: 1fr;
-        }
-
-        .action-buttons,
-        .action-bar {
-            flex-direction: column;
-        }
+        color: #6c757d;
+        font-style: italic;
+        margin: 2rem 0;
     }
 </style>
 

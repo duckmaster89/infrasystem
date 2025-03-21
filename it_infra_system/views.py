@@ -207,22 +207,35 @@ def delete_ambiente(request, ambiente_id):
 @custom_login_required
 def list_users(request):
     try:
-        # Obtener el perfil del usuario actual
-        usuario_extendido = UsuarioExtendido.objects.get(user=request.user)
-        es_administrador = usuario_extendido.perfil.nombre_perfil == 'Administrador'
+        # Obtener el perfil del usuario actual y verificar si es administrador
+        try:
+            usuario_extendido = UsuarioExtendido.objects.get(user=request.user)
+            es_administrador = usuario_extendido.perfil.nombre_perfil == 'Administrador'
+        except (UsuarioExtendido.DoesNotExist, AttributeError):
+            es_administrador = False
         
         # Obtener todos los usuarios y sus perfiles
         users = User.objects.all().order_by('username')
         usuarios_info = []
+        
         for user in users:
             try:
-                perfil = UsuarioExtendido.objects.get(user=user).perfil.nombre_perfil
+                usuario_ext = UsuarioExtendido.objects.get(user=user)
+                perfil = usuario_ext.perfil.nombre_perfil if usuario_ext.perfil else "Sin perfil asignado"
             except UsuarioExtendido.DoesNotExist:
                 perfil = "Sin perfil asignado"
+            
+            # Obtener la última modificación de la bitácora
+            ultima_modificacion = Bitacora.objects.filter(
+                descripcion__icontains=user.username,
+                tipo_accion__in=['CREATE', 'UPDATE']
+            ).order_by('-fecha_hora').first()
+            
             usuarios_info.append({
                 'user': user,
                 'perfil': perfil,
-                'can_edit': es_administrador or user == request.user
+                'can_edit': es_administrador or user == request.user,
+                'ultima_modificacion': ultima_modificacion
             })
         
         # Registrar en bitácora
@@ -282,40 +295,33 @@ def create_user(request):
 
 @custom_login_required
 def edit_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    
-    # Verificar si el usuario tiene permiso para editar
-    try:
-        usuario_extendido = UsuarioExtendido.objects.get(user=request.user)
-        es_administrador = usuario_extendido.perfil.nombre_perfil == 'Administrador'
-        if not (es_administrador or request.user.id == user_id):
-            return redirect('list_users')
-    except UsuarioExtendido.DoesNotExist:
-        return redirect('list_users')
-    
-    if request.method == 'GET':
+    if request.method == 'POST':
+        if 'password' in request.POST and request.POST['password']:
+            logout(request)
+            return redirect('signin')
         try:
-            perfil = UsuarioExtendido.objects.get(user=user).perfil
-        except UsuarioExtendido.DoesNotExist:
-            perfil = None
-            
-        return render(request, 'edit_user.html', {
-            'user': user,
-            'perfil': perfil
-        })
-    else:
-        try:
-            # Actualizar datos básicos del usuario
-            user.username = request.POST['username']
+            user = get_object_or_404(User, id=user_id)
             user.first_name = request.POST.get('first_name', '')
             user.last_name = request.POST.get('last_name', '')
             user.email = request.POST.get('email', '')
             
-            # Actualizar contraseña si se proporcionó
-            if request.POST.get('password1') and request.POST['password1'] == request.POST['password2']:
-                user.set_password(request.POST['password1'])
+            if request.POST.get('password'):
+                user.set_password(request.POST['password'])
             
             user.save()
+            
+            # Actualizar perfil si es administrador
+            try:
+                usuario_actual = UsuarioExtendido.objects.get(user=request.user)
+                if usuario_actual.perfil.nombre_perfil == 'Administrador':
+                    usuario_editar = UsuarioExtendido.objects.get(user=user)
+                    perfil_id = request.POST.get('perfil')
+                    if perfil_id:
+                        perfil = get_object_or_404(Perfil, id=perfil_id)
+                        usuario_editar.perfil = perfil
+                        usuario_editar.save()
+            except (UsuarioExtendido.DoesNotExist, AttributeError):
+                pass
             
             # Registrar en bitácora
             registrar_evento(
@@ -325,22 +331,34 @@ def edit_user(request, user_id):
                 f'Actualización de usuario: {user.username}'
             )
             
-            # Si el usuario editó su propia contraseña, necesita volver a iniciar sesión
-            if request.POST.get('password1') and request.user.id == user_id:
-    logout(request)
-                return redirect('signin')
-            
+            messages.success(request, 'Usuario actualizado exitosamente.')
             return redirect('list_users')
-        except ValueError as e:
-            return render(request, 'edit_user.html', {
-                'user': user,
-                'error': f'Error actualizando el usuario: {str(e)}'
-            })
         except Exception as e:
-            return render(request, 'edit_user.html', {
-                'user': user,
-                'error': 'Error inesperado actualizando el usuario'
-            })
+            messages.error(request, f'Error actualizando usuario: {str(e)}')
+            return redirect('list_users')
+    
+    user = get_object_or_404(User, id=user_id)
+    try:
+        usuario_extendido = UsuarioExtendido.objects.get(user=user)
+        perfil_actual = usuario_extendido.perfil
+    except UsuarioExtendido.DoesNotExist:
+        perfil_actual = None
+    
+    # Verificar si el usuario actual es administrador
+    try:
+        usuario_actual = UsuarioExtendido.objects.get(user=request.user)
+        es_administrador = usuario_actual.perfil.nombre_perfil == 'Administrador'
+    except (UsuarioExtendido.DoesNotExist, AttributeError):
+        es_administrador = False
+    
+    perfiles = Perfil.objects.all() if es_administrador else []
+    
+    return render(request, 'edit_user.html', {
+        'user': user,
+        'perfil_actual': perfil_actual,
+        'perfiles': perfiles,
+        'es_administrador': es_administrador
+    })
 
 @custom_login_required
 def delete_user(request, user_id):
@@ -459,39 +477,37 @@ def delete_perfil(request, perfil_id):
 def create_cloud(request):
     if request.method == 'GET':
         ambientes = AMBIENTE.objects.all().order_by('nombre_ambiente')
+        return render(request, 'create_cloud.html', {'ambientes': ambientes})
+    try:
+        # Crear el cloud
+        cloud = CLOUD.objects.create(
+            nombre_cloud=request.POST['nombre_cloud'],
+            siglas_cloud=request.POST['siglas_cloud'],
+            user_create=request.user
+        )
+        
+        # Agregar los ambientes seleccionados
+        ambientes_ids = request.POST.getlist('ambientes')
+        if ambientes_ids:
+            ambientes = AMBIENTE.objects.filter(id_ambiente__in=ambientes_ids)
+            cloud.ambientes.add(*ambientes)
+        
+        # Registrar en bitácora
+        registrar_evento(
+            request.user,
+            'CREATE',
+            'CLOUD',
+            f'Creación de cloud: {cloud.nombre_cloud}'
+        )
+        
+        messages.success(request, 'Cloud creado exitosamente.')
+        return redirect('list_clouds')
+    except Exception as e:
+        ambientes = AMBIENTE.objects.all().order_by('nombre_ambiente')
         return render(request, 'create_cloud.html', {
-            'ambientes': ambientes
-            })
-        else:
-        try:
-            # Crear el cloud
-            cloud = CLOUD.objects.create(
-                nombre_cloud=request.POST['nombre_cloud'],
-                siglas_cloud=request.POST['siglas_cloud'],
-                user_create=request.user
-            )
-            
-            # Agregar los ambientes seleccionados
-            ambientes_ids = request.POST.getlist('ambientes')
-            for ambiente_id in ambientes_ids:
-                ambiente = get_object_or_404(AMBIENTE, id_ambiente=ambiente_id)
-                cloud.ambientes.add(ambiente)
-            
-            # Registrar en bitácora
-            registrar_evento(
-                request.user,
-                'CREATE',
-                'CLOUD',
-                f'Creación de cloud: {cloud.nombre_cloud}'
-            )
-            
-            return redirect('list_clouds')
-        except ValueError:
-            ambientes = AMBIENTE.objects.all().order_by('nombre_ambiente')
-            return render(request, 'create_cloud.html', {
-                'ambientes': ambientes,
-                'error': 'Por favor proporcione datos válidos'
-            })
+            'ambientes': ambientes,
+            'error': f'Error creando el cloud: {str(e)}'
+        })
 
 @custom_login_required
 def list_clouds(request):
@@ -573,32 +589,136 @@ def delete_cloud(request, cloud_id):
     return redirect('list_clouds')
 
 @custom_login_required
+def list_solicitantes(request):
+    solicitantes = SOLICITANTE.objects.all().order_by('nombre_solicitante')
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'SOLICITANTE',
+        'Visualización de lista de solicitantes'
+    )
+    
+    return render(request, 'list_solicitantes.html', {'solicitantes': solicitantes})
+
+@custom_login_required
 def create_solicitante(request):
     if request.method == 'GET':
+        puestos = PUESTO.objects.all().order_by('nombre_puesto')
+        gerencias = GERENCIA.objects.all().order_by('nombre_gerencia')
         return render(request, 'create_solicitante.html', {
-            'form': SolicitanteForm
+            'form': SolicitanteForm(),
+            'puestos': puestos,
+            'gerencias': gerencias
         })
     else:
         try:
             form = SolicitanteForm(request.POST)
-            nuevo_solicitante = form.save(commit=False)
-            nuevo_solicitante.user_create = request.user
-            nuevo_solicitante.save()
-            
-            registrar_evento(
-                request.user,
-                'CREATE',
-                'SOLICITANTE',
-                f'Creación de solicitante: {nuevo_solicitante.nombre_solicitante}'
-            )
-            
-            messages.success(request, 'Solicitante creado exitosamente.')
-            return redirect('submenu_crear')
-        except ValueError:
+            if form.is_valid():
+                nuevo_solicitante = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(SOLICITANTE.objects.values_list('id_solicitante', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nuevo_solicitante.id_solicitante = id_nuevo
+                nuevo_solicitante.user_create = request.user
+                nuevo_solicitante.fecha_creacion = timezone.now()
+                nuevo_solicitante.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'SOLICITANTE',
+                    f'Creación de solicitante: {nuevo_solicitante.nombre_solicitante}'
+                )
+                
+                return redirect('list_solicitantes')
+            else:
+                puestos = PUESTO.objects.all().order_by('nombre_puesto')
+                gerencias = GERENCIA.objects.all().order_by('nombre_gerencia')
+                return render(request, 'create_solicitante.html', {
+                    'form': form,
+                    'puestos': puestos,
+                    'gerencias': gerencias,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            puestos = PUESTO.objects.all().order_by('nombre_puesto')
+            gerencias = GERENCIA.objects.all().order_by('nombre_gerencia')
             return render(request, 'create_solicitante.html', {
-                'form': SolicitanteForm,
-                'error': 'Por favor proporcione datos válidos'
+                'form': SolicitanteForm(),
+                'puestos': puestos,
+                'gerencias': gerencias,
+                'error': f'Error creando el solicitante: {str(e)}'
             })
+
+@custom_login_required
+def edit_solicitante(request, solicitante_id):
+    solicitante = get_object_or_404(SOLICITANTE, id_solicitante=solicitante_id)
+    
+    if request.method == 'GET':
+        form = SolicitanteForm(instance=solicitante)
+        puestos = PUESTO.objects.all().order_by('nombre_puesto')
+        gerencias = GERENCIA.objects.all().order_by('nombre_gerencia')
+        return render(request, 'edit_solicitante.html', {
+            'solicitante': solicitante,
+            'form': form,
+            'puestos': puestos,
+            'gerencias': gerencias
+        })
+    else:
+        try:
+            form = SolicitanteForm(request.POST, instance=solicitante)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'SOLICITANTE',
+                    f'Actualización de solicitante: {solicitante.nombre_solicitante}'
+                )
+                
+                messages.success(request, 'Solicitante actualizado exitosamente.')
+                return redirect('list_solicitantes')
+            else:
+                puestos = PUESTO.objects.all().order_by('nombre_puesto')
+                gerencias = GERENCIA.objects.all().order_by('nombre_gerencia')
+                return render(request, 'edit_solicitante.html', {
+                    'solicitante': solicitante,
+                    'form': form,
+                    'puestos': puestos,
+                    'gerencias': gerencias,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_solicitante.html', {
+                'solicitante': solicitante,
+                'form': form,
+                'error': f'Error actualizando el solicitante: {str(e)}'
+            })
+
+@custom_login_required
+def delete_solicitante(request, solicitante_id):
+    solicitante = get_object_or_404(SOLICITANTE, id_solicitante=solicitante_id)
+    nombre_solicitante = solicitante.nombre_solicitante
+    solicitante.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'SOLICITANTE',
+        f'Eliminación de solicitante: {nombre_solicitante}'
+    )
+    
+    return redirect('list_solicitantes')
 
 @custom_login_required
 def create_gerencia(request):
@@ -664,86 +784,45 @@ def create_puesto(request):
             })
 
 @custom_login_required
-def list_solicitantes(request):
-    try:
-        solicitantes = SOLICITANTE.objects.all()
-        return render(request, 'list_solicitantes.html', {'solicitantes': solicitantes})
-    except Exception as e:
-        return render(request, 'list_solicitantes.html', {'error': str(e)})
-
-@custom_login_required
 def list_gerencias(request):
-    try:
-        gerencias = GERENCIA.objects.all()
-        return render(request, 'list_gerencias.html', {'gerencias': gerencias})
-    except Exception as e:
-        return render(request, 'list_gerencias.html', {'error': str(e)})
+    gerencias = GERENCIA.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'GERENCIA',
+        'Visualización de lista de gerencias'
+    )
+    
+    return render(request, 'list_gerencias.html', {'gerencias': gerencias})
 
 @custom_login_required
 def list_puestos(request):
-    try:
-        puestos = PUESTO.objects.all()
-        return render(request, 'list_puestos.html', {'puestos': puestos})
-    except Exception as e:
-        return render(request, 'list_puestos.html', {'error': str(e)})
-
-@custom_login_required
-def edit_solicitante(request, solicitante_id):
-    solicitante = get_object_or_404(SOLICITANTE, id_solicitante=solicitante_id)
+    puestos = PUESTO.objects.all()
     
-    if request.method == 'GET':
-        return render(request, 'edit_solicitante.html', {
-            'form': SolicitanteForm(instance=solicitante)
-        })
-    else:
-        try:
-            form = SolicitanteForm(request.POST, instance=solicitante)
-            form.save()
-            
-            registrar_evento(
-                request.user,
-                'UPDATE',
-                'SOLICITANTE',
-                f'Actualización de solicitante: {solicitante.nombre_solicitante}'
-            )
-            
-            messages.success(request, 'Solicitante actualizado exitosamente.')
-            return redirect('list_solicitantes')
-        except ValueError:
-            return render(request, 'edit_solicitante.html', {
-                'form': SolicitanteForm(instance=solicitante),
-                'error': 'Error actualizando el solicitante'
-            })
-
-@custom_login_required
-def delete_solicitante(request, solicitante_id):
-    solicitante = get_object_or_404(SOLICITANTE, id_solicitante=solicitante_id)
-    nombre_solicitante = solicitante.nombre_solicitante
-    solicitante.delete()
-    
+    # Registrar en bitácora
     registrar_evento(
         request.user,
-        'DELETE',
-        'SOLICITANTE',
-        f'Eliminación de solicitante: {nombre_solicitante}'
+        'VIEW',
+        'PUESTO',
+        'Visualización de lista de puestos'
     )
     
-    messages.success(request, 'Solicitante eliminado exitosamente.')
-    return redirect('list_solicitantes')
+    return render(request, 'list_puestos.html', {'puestos': puestos})
 
 @custom_login_required
 def edit_gerencia(request, gerencia_id):
     gerencia = get_object_or_404(GERENCIA, id_gerencia=gerencia_id)
     
     if request.method == 'GET':
-        return render(request, 'edit_gerencia.html', {
-            'form': GerenciaForm(instance=gerencia)
-        })
+        return render(request, 'edit_gerencia.html', {'gerencia': gerencia})
     else:
         try:
-            form = GerenciaForm(request.POST, instance=gerencia)
-            form.save()
+            gerencia.nombre_gerencia = request.POST['nombre_gerencia']
+            gerencia.save()
             
+            # Registrar en bitácora
             registrar_evento(
                 request.user,
                 'UPDATE',
@@ -751,11 +830,10 @@ def edit_gerencia(request, gerencia_id):
                 f'Actualización de gerencia: {gerencia.nombre_gerencia}'
             )
             
-            messages.success(request, 'Gerencia actualizada exitosamente.')
             return redirect('list_gerencias')
         except ValueError:
             return render(request, 'edit_gerencia.html', {
-                'form': GerenciaForm(instance=gerencia),
+                'gerencia': gerencia,
                 'error': 'Error actualizando la gerencia'
             })
 
@@ -765,6 +843,7 @@ def delete_gerencia(request, gerencia_id):
     nombre_gerencia = gerencia.nombre_gerencia
     gerencia.delete()
     
+    # Registrar en bitácora
     registrar_evento(
         request.user,
         'DELETE',
@@ -772,7 +851,6 @@ def delete_gerencia(request, gerencia_id):
         f'Eliminación de gerencia: {nombre_gerencia}'
     )
     
-    messages.success(request, 'Gerencia eliminada exitosamente.')
     return redirect('list_gerencias')
 
 @custom_login_required
@@ -780,14 +858,14 @@ def edit_puesto(request, puesto_id):
     puesto = get_object_or_404(PUESTO, id_puesto=puesto_id)
     
     if request.method == 'GET':
-        return render(request, 'edit_puesto.html', {
-            'form': PuestoForm(instance=puesto)
-        })
+        return render(request, 'edit_puesto.html', {'puesto': puesto})
     else:
         try:
-            form = PuestoForm(request.POST, instance=puesto)
-            form.save()
+            puesto.nombre_puesto = request.POST['nombre_puesto']
+            puesto.descripcion_puesto = request.POST['descripcion_puesto']
+            puesto.save()
             
+            # Registrar en bitácora
             registrar_evento(
                 request.user,
                 'UPDATE',
@@ -795,11 +873,10 @@ def edit_puesto(request, puesto_id):
                 f'Actualización de puesto: {puesto.nombre_puesto}'
             )
             
-            messages.success(request, 'Puesto actualizado exitosamente.')
             return redirect('list_puestos')
         except ValueError:
             return render(request, 'edit_puesto.html', {
-                'form': PuestoForm(instance=puesto),
+                'puesto': puesto,
                 'error': 'Error actualizando el puesto'
             })
 
@@ -809,6 +886,7 @@ def delete_puesto(request, puesto_id):
     nombre_puesto = puesto.nombre_puesto
     puesto.delete()
     
+    # Registrar en bitácora
     registrar_evento(
         request.user,
         'DELETE',
@@ -816,5 +894,4 @@ def delete_puesto(request, puesto_id):
         f'Eliminación de puesto: {nombre_puesto}'
     )
     
-    messages.success(request, 'Puesto eliminado exitosamente.')
     return redirect('list_puestos')

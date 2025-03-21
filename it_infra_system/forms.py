@@ -11,18 +11,20 @@ class AmbienteForm(ModelForm):
 class SolicitanteForm(forms.ModelForm):
     class Meta:
         model = SOLICITANTE
-        fields = ['nombre_solicitante', 'puesto_solicitante', 'email_solicitante', 'tel_solicitante']
+        fields = ['nombre_solicitante', 'email_solicitante', 'tel_solicitante', 'puesto', 'gerencia']
         labels = {
             'nombre_solicitante': 'Nombre del Solicitante',
-            'puesto_solicitante': 'Puesto',
             'email_solicitante': 'Correo Electrónico',
-            'tel_solicitante': 'Teléfono'
+            'tel_solicitante': 'Teléfono',
+            'puesto': 'Puesto',
+            'gerencia': 'Gerencia'
         }
         widgets = {
             'nombre_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el nombre completo'}),
-            'puesto_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el puesto'}),
             'email_solicitante': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ejemplo@claro.com.gt'}),
-            'tel_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el número telefónico'})
+            'tel_solicitante': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el número telefónico'}),
+            'puesto': forms.Select(attrs={'class': 'form-control'}),
+            'gerencia': forms.Select(attrs={'class': 'form-control'})
         }
 
 class GerenciaForm(forms.ModelForm):

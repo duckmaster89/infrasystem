@@ -37,6 +37,9 @@ urlpatterns = [
 
     # URLs para solicitantes
     path('create/solicitante/', views.create_solicitante, name='create_solicitante'),
+    path('list/solicitantes/', views.list_solicitantes, name='list_solicitantes'),
+    path('edit/solicitante/<int:solicitante_id>/', views.edit_solicitante, name='edit_solicitante'),
+    path('delete/solicitante/<int:solicitante_id>/', views.delete_solicitante, name='delete_solicitante'),
     
     # URLs para gerencias
     path('create/gerencia/', views.create_gerencia, name='create_gerencia'),

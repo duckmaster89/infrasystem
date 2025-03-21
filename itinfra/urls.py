@@ -53,11 +53,20 @@ urlpatterns = [
     path('delete/cloud/<int:cloud_id>/', views.delete_cloud, name='delete_cloud'),
     
     # URLs para solicitantes
+    path('list/solicitantes/', views.list_solicitantes, name='list_solicitantes'),
     path('create/solicitante/', views.create_solicitante, name='create_solicitante'),
+    path('edit/solicitante/<int:solicitante_id>/', views.edit_solicitante, name='edit_solicitante'),
+    path('delete/solicitante/<int:solicitante_id>/', views.delete_solicitante, name='delete_solicitante'),
     
     # URLs para gerencias
     path('create/gerencia/', views.create_gerencia, name='create_gerencia'),
+    path('list/gerencias/', views.list_gerencias, name='list_gerencias'),
+    path('edit/gerencia/<int:gerencia_id>/', views.edit_gerencia, name='edit_gerencia'),
+    path('delete/gerencia/<int:gerencia_id>/', views.delete_gerencia, name='delete_gerencia'),
     
     # URLs para puestos
     path('create/puesto/', views.create_puesto, name='create_puesto'),
+    path('list/puestos/', views.list_puestos, name='list_puestos'),
+    path('edit/puesto/<int:puesto_id>/', views.edit_puesto, name='edit_puesto'),
+    path('delete/puesto/<int:puesto_id>/', views.delete_puesto, name='delete_puesto'),
 ]

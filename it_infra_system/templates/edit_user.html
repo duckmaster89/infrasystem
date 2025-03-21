@@ -33,6 +33,20 @@
                 <input type="email" name="email" id="email" value="{{user.email}}">
             </div>
 
+            {% if es_administrador %}
+            <div class="form-group">
+                <label for="perfil">Perfil</label>
+                <select name="perfil" id="perfil" class="form-select">
+                    <option value="">-- Seleccionar Perfil --</option>
+                    {% for perfil in perfiles %}
+                    <option value="{{perfil.id_perfil}}" {% if perfil_actual and perfil.id_perfil == perfil_actual.id_perfil %}selected{% endif %}>
+                        {{perfil.nombre_perfil}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
             <div class="form-group">
                 <label for="password1">Nueva Contraseña (opcional)</label>
                 <input type="password" name="password1" id="password1">
@@ -60,7 +74,7 @@
 
 <style>
     .edit-container {
-        max-width: 600px;
+        max-width: 800px;
         margin: 0 auto;
         padding: 2rem;
     }
@@ -78,12 +92,10 @@
         padding: 2rem;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border: 1px solid #eee;
     }
 
     .form-fields {
-        display: flex;
-        flex-direction: column;
+        display: grid;
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
@@ -95,88 +107,84 @@
     }
 
     .form-group label {
+        font-weight: 500;
         color: var(--dark-gray);
-        font-weight: bold;
-        font-size: 1rem;
     }
 
-    .form-group input {
-        width: 100%;
+    .form-group input,
+    .form-group select {
         padding: 0.75rem;
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 1rem;
-        transition: all 0.3s ease;
+        transition: border-color 0.3s ease;
     }
 
-    .form-group input:focus {
+    .form-group input:focus,
+    .form-group select:focus {
         outline: none;
         border-color: var(--claro-red);
-        box-shadow: 0 0 0 2px rgba(226, 10, 22, 0.1);
     }
 
     .help-text {
-        color: #666;
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
+        color: #6c757d;
+        font-size: 0.875rem;
+        font-style: italic;
     }
 
     .button-group {
         display: flex;
         gap: 1rem;
+        justify-content: flex-end;
     }
 
-    .submit-btn,
-    .cancel-btn {
-        flex: 1;
-        display: flex;
+    .btn {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 0.5rem;
         padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
         font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
         transition: all 0.3s ease;
     }
 
     .submit-btn {
         background-color: var(--claro-red);
+        color: white;
     }
 
     .submit-btn:hover {
-        background-color: var(--claro-dark-red);
-        transform: translateY(-2px);
+        background-color: #c41230;
     }
 
     .cancel-btn {
-        background-color: var(--dark-gray);
+        background-color: #6c757d;
+        color: white;
     }
 
     .cancel-btn:hover {
-        background-color: #555;
-        transform: translateY(-2px);
+        background-color: #5c636a;
     }
 
     .error-message {
-        background-color: #fff2f2;
-        border: 1px solid #ffdbdb;
-        color: var(--claro-red);
+        background-color: #f8d7da;
+        color: #842029;
         padding: 1rem;
         border-radius: 4px;
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
         text-align: center;
     }
 
-    @media (max-width: 768px) {
-        .edit-container {
-            padding: 1rem;
-        }
-
-        .button-group {
-            flex-direction: column;
-        }
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
     }
 </style>
-
-<!-- Agregar Font Awesome para los iconos -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %} 
