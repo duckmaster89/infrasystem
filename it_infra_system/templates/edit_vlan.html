@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-network-wired"></i>
+                        Editar VLAN
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.cloud.id_for_label }}">{{ form.cloud.label }}</label>
+                            {{ form.cloud }}
+                            <small class="form-text text-muted">{{ form.cloud.help_text }}</small>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ form.ambiente.id_for_label }}">{{ form.ambiente.label }}</label>
+                            {{ form.ambiente }}
+                            <small class="form-text text-muted">{{ form.ambiente.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.numero_vlan.id_for_label }}">{{ form.numero_vlan.label }}</label>
+                            {{ form.numero_vlan }}
+                            <small class="form-text text-muted">{{ form.numero_vlan.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.segmento_vlan.id_for_label }}">{{ form.segmento_vlan.label }}</label>
+                            {{ form.segmento_vlan }}
+                            <small class="form-text text-muted">{{ form.segmento_vlan.help_text }}</small>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.barra_vlan.id_for_label }}">{{ form.barra_vlan.label }}</label>
+                            {{ form.barra_vlan }}
+                            <small class="form-text text-muted">{{ form.barra_vlan.help_text }}</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                            <a href="{% url 'list_vlans' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        background-color: var(--claro-red) !important;
+    }
+    
+    .form-control {
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--claro-red);
+        border-color: var(--claro-red);
+    }
+    
+    .btn-primary:hover {
+        background-color: #c00;
+        border-color: #c00;
+    }
+</style>
+
+<script>
+function updateAmbientes() {
+    const cloudSelect = document.getElementById('id_cloud');
+    const ambienteSelect = document.getElementById('id_ambiente');
+    const selectedCloud = cloudSelect.value;
+    const currentAmbiente = '{{ vlan.ambiente.id_ambiente }}';
+
+    // Limpiar opciones actuales
+    ambienteSelect.innerHTML = '<option value="">---------</option>';
+
+    if (selectedCloud) {
+        // Obtener ambientes de la cloud seleccionada
+        fetch(`/get_ambientes_by_cloud/${selectedCloud}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.ambientes) {
+                    data.ambientes.forEach(ambiente => {
+                        const option = document.createElement('option');
+                        option.value = ambiente.id;
+                        option.textContent = ambiente.nombre;
+                        if (ambiente.id.toString() === currentAmbiente) {
+                            option.selected = true;
+                        }
+                        ambienteSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+// Llamar a updateAmbientes cuando se carga la página si hay una cloud seleccionada
+document.addEventListener('DOMContentLoaded', function() {
+    const cloudSelect = document.getElementById('id_cloud');
+    if (cloudSelect.value) {
+        updateAmbientes();
+    }
+});
+</script>
+{% endblock %} 

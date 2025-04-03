@@ -35,30 +35,24 @@
 
             {% if es_administrador %}
             <div class="form-group">
-                <label for="perfil">Perfil</label>
-                <select name="perfil" id="perfil" class="form-select">
-                    <option value="">-- Seleccionar Perfil --</option>
+                <label for="perfiles">Perfiles</label>
+                <select name="perfiles" id="perfiles" class="form-select" multiple>
                     {% for perfil in perfiles %}
-                    <option value="{{perfil.id_perfil}}" {% if perfil_actual and perfil.id_perfil == perfil_actual.id_perfil %}selected{% endif %}>
+                    <option value="{{perfil.id_perfil}}" {% if perfil in perfiles_actuales %}selected{% endif %}>
                         {{perfil.nombre_perfil}}
                     </option>
                     {% endfor %}
                 </select>
+                <small class="form-text text-muted">Mantenga presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples perfiles</small>
             </div>
             {% endif %}
 
             <div class="form-group">
-                <label for="password1">Nueva Contraseña (opcional)</label>
-                <input type="password" name="password1" id="password1">
-                <small class="help-text">Dejar en blanco para mantener la contraseña actual</small>
-            </div>
-
-            <div class="form-group">
-                <label for="password2">Confirmar Nueva Contraseña</label>
-                <input type="password" name="password2" id="password2">
+                <label for="password">Nueva Contraseña (dejar en blanco para mantener la actual)</label>
+                <input type="password" name="password" id="password">
             </div>
         </div>
-        
+
         <div class="button-group">
             <button type="submit" class="btn submit-btn">
                 <i class="fas fa-save"></i>
@@ -75,29 +69,22 @@
 <style>
     .edit-container {
         max-width: 800px;
-        margin: 0 auto;
+        margin: 2rem auto;
         padding: 2rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .edit-title {
-        color: var(--claro-red);
+        color: #E30613;
+        margin-bottom: 2rem;
         text-align: center;
-        margin-bottom: 3rem;
-        font-size: 2.5rem;
-        font-weight: bold;
-    }
-
-    .edit-form {
-        background-color: var(--white);
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .form-fields {
         display: grid;
         gap: 1.5rem;
-        margin-bottom: 2rem;
     }
 
     .form-group {
@@ -108,7 +95,7 @@
 
     .form-group label {
         font-weight: 500;
-        color: var(--dark-gray);
+        color: #333;
     }
 
     .form-group input,
@@ -117,48 +104,45 @@
         border: 1px solid #ddd;
         border-radius: 4px;
         font-size: 1rem;
-        transition: border-color 0.3s ease;
     }
 
     .form-group input:focus,
     .form-group select:focus {
+        border-color: #E30613;
         outline: none;
-        border-color: var(--claro-red);
+        box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.2);
     }
 
-    .help-text {
-        color: #6c757d;
-        font-size: 0.875rem;
-        font-style: italic;
+    .form-select[multiple] {
+        height: 150px;
     }
 
     .button-group {
         display: flex;
         gap: 1rem;
+        margin-top: 2rem;
         justify-content: flex-end;
     }
 
     .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
         padding: 0.75rem 1.5rem;
         border: none;
         border-radius: 4px;
         font-size: 1rem;
-        font-weight: 500;
         cursor: pointer;
-        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         transition: all 0.3s ease;
     }
 
     .submit-btn {
-        background-color: var(--claro-red);
+        background-color: #E30613;
         color: white;
     }
 
     .submit-btn:hover {
-        background-color: #c41230;
+        background-color: #c70512;
     }
 
     .cancel-btn {
@@ -167,24 +151,15 @@
     }
 
     .cancel-btn:hover {
-        background-color: #5c636a;
+        background-color: #5a6268;
     }
 
     .error-message {
         background-color: #f8d7da;
-        color: #842029;
+        color: #721c24;
         padding: 1rem;
         border-radius: 4px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-
-    .form-select {
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 16px 12px;
+        margin-bottom: 1rem;
     }
 </style>
 {% endblock %} 

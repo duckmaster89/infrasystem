@@ -1,0 +1,161 @@
+{% extends 'it_infra_system/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if vlan %}Editar{% else %}Nueva{% endif %} VLAN</h2>
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.numero_vlan.id_for_label }}">Número de VLAN</label>
+                    {{ form.numero_vlan }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.segmento_vlan.id_for_label }}">Segmento de VLAN</label>
+                    {{ form.segmento_vlan }}
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.barra_vlan.id_for_label }}">Barra de VLAN</label>
+                    {{ form.barra_vlan }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.uso_red.id_for_label }}">Uso de Red</label>
+                    {{ form.uso_red }}
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.cloud.id_for_label }}">Cloud</label>
+                    {{ form.cloud }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="{{ form.ambiente.id_for_label }}">Ambiente</label>
+                    {{ form.ambiente }}
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3" id="proyecto-container" style="display: none;">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="{{ form.proyecto.id_for_label }}">Proyecto</label>
+                    {{ form.proyecto }}
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a href="{% url 'list_vlans' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usoRedSelect = document.getElementById('{{ form.uso_red.id_for_label }}');
+    const proyectoSelect = document.getElementById('{{ form.proyecto.id_for_label }}');
+    const proyectoContainer = document.getElementById('proyecto-container');
+    const cloudSelect = document.getElementById('{{ form.cloud.id_for_label }}');
+    const ambienteSelect = document.getElementById('{{ form.ambiente.id_for_label }}');
+    
+    function loadProyectos(usoRedId) {
+        if (usoRedId) {
+            console.log('Cargando proyectos para uso de red:', usoRedId);
+            fetch('/usos-red/get-proyectos/' + usoRedId + '/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP error! status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Proyectos recibidos:', data);
+                    proyectoSelect.innerHTML = '<option value="">Seleccione un proyecto</option>';
+                    data.proyectos.forEach(proyecto => {
+                        const option = document.createElement('option');
+                        option.value = proyecto.id;
+                        option.textContent = proyecto.nombre;
+                        proyectoSelect.appendChild(option);
+                    });
+                    const selectedText = usoRedSelect.options[usoRedSelect.selectedIndex].text;
+                    console.log('Texto seleccionado:', selectedText);
+                    if (selectedText.toLowerCase().includes('proyecto especifico')) {
+                        console.log('Mostrando contenedor de proyecto');
+                        proyectoContainer.style.display = 'block';
+                        proyectoSelect.style.display = 'block';
+                    } else {
+                        console.log('Ocultando contenedor de proyecto');
+                        proyectoContainer.style.display = 'none';
+                        proyectoSelect.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar proyectos:', error);
+                    proyectoContainer.style.display = 'none';
+                    proyectoSelect.style.display = 'none';
+                });
+        } else {
+            console.log('No hay uso de red seleccionado');
+            proyectoContainer.style.display = 'none';
+            proyectoSelect.style.display = 'none';
+        }
+    }
+
+    function loadAmbientes(cloudId) {
+        if (cloudId) {
+            fetch('/get_ambientes_by_cloud/' + cloudId + '/')
+                .then(response => response.json())
+                .then(data => {
+                    ambienteSelect.innerHTML = '<option value="">Seleccione un ambiente</option>';
+                    data.ambientes.forEach(ambiente => {
+                        const option = document.createElement('option');
+                        option.value = ambiente.id;
+                        option.textContent = ambiente.nombre;
+                        ambienteSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        } else {
+            ambienteSelect.innerHTML = '<option value="">Seleccione un ambiente</option>';
+        }
+    }
+
+    usoRedSelect.addEventListener('change', function() {
+        const selectedText = this.options[this.selectedIndex].text;
+        if (selectedText.toLowerCase().includes('proyecto especifico')) {
+            loadProyectos(this.value);
+        } else {
+            proyectoContainer.style.display = 'none';
+            proyectoSelect.style.display = 'none';
+        }
+    });
+
+    cloudSelect.addEventListener('change', function() {
+        loadAmbientes(this.value);
+    });
+
+    if (usoRedSelect.value) {
+        const selectedText = usoRedSelect.options[usoRedSelect.selectedIndex].text;
+        if (selectedText.toLowerCase().includes('proyecto especifico')) {
+            loadProyectos(usoRedSelect.value);
+        }
+    }
+    if (cloudSelect.value) {
+        loadAmbientes(cloudSelect.value);
+    }
+});
+</script>
+{% endblock %} 

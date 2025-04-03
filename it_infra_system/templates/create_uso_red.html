@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Crear Uso de Red</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.nombre_uso.id_for_label }}">{{ form.nombre_uso.label }}</label>
+                            {{ form.nombre_uso }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.descripcion_uso.id_for_label }}">{{ form.descripcion_uso.label }}</label>
+                            {{ form.descripcion_uso }}
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Guardar
+                            </button>
+                            <a href="{% url 'submenu_crear' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        background-color: var(--claro-red) !important;
+    }
+    
+    .btn-primary {
+        background-color: var(--claro-red);
+        border-color: var(--claro-red);
+    }
+    
+    .btn-primary:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+</style>
+{% endblock %} 

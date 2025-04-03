@@ -5,10 +5,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm
-from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO
+from django.core.exceptions import ValidationError
+from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, RedForm, UsoRedForm
+from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED
 from django.contrib import messages
 from .decorators import custom_login_required
+from django.http import JsonResponse
 
 
 # Create your views here.
@@ -47,10 +49,10 @@ def signup(request):
                 last_name=last_name
             )
 
-            # Crear usuario extendido sin perfil
+            # Crear usuario extendido sin perfiles asignados
             UsuarioExtendido.objects.create(user=user)
 
-            messages.success(request, 'Usuario creado exitosamente. Por favor, espere a que un administrador le asigne un perfil.')
+            messages.success(request, 'Usuario creado exitosamente. Por favor, espere a que un administrador le asigne los perfiles correspondientes.')
             return redirect('signin')
 
         except Exception as e:
@@ -78,12 +80,12 @@ def signin(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            # Verificar si el usuario tiene un perfil asignado
+            # Verificar si el usuario tiene al menos un perfil asignado
             try:
                 usuario_extendido = UsuarioExtendido.objects.get(user=user)
-                if not usuario_extendido.perfil:
-                    messages.error(request, 'No tiene un perfil asignado. Por favor, contacte al administrador.')
-                    return render(request, 'signin.html', {'error': 'No tiene un perfil asignado'})
+                if not usuario_extendido.perfiles.exists():
+                    messages.error(request, 'No tiene perfiles asignados. Por favor, contacte al administrador.')
+                    return render(request, 'signin.html', {'error': 'No tiene perfiles asignados'})
                 
                 login(request, user)
                 return redirect('menu')
@@ -114,6 +116,14 @@ def create_ambiente(request):
         try:
             form = AmbienteForm(request.POST)
             nuevo_ambiente = form.save(commit=False)
+            
+            # Encontrar el ID más pequeño disponible
+            ids_existentes = set(AMBIENTE.objects.values_list('id_ambiente', flat=True))
+            id_nuevo = 1
+            while id_nuevo in ids_existentes:
+                id_nuevo += 1
+            
+            nuevo_ambiente.id_ambiente = id_nuevo
             nuevo_ambiente.user_create = request.user
             nuevo_ambiente.fecha_creacion = timezone.now()
             nuevo_ambiente.save()
@@ -210,8 +220,12 @@ def list_users(request):
         # Obtener el perfil del usuario actual y verificar si es administrador
         try:
             usuario_extendido = UsuarioExtendido.objects.get(user=request.user)
-            es_administrador = usuario_extendido.perfil.nombre_perfil == 'Administrador'
-        except (UsuarioExtendido.DoesNotExist, AttributeError):
+            es_administrador = usuario_extendido.es_administrador()
+        except UsuarioExtendido.DoesNotExist:
+            print("Error: UsuarioExtendido no existe para el usuario actual")
+            es_administrador = False
+        except AttributeError:
+            print("Error: Método es_administrador no encontrado")
             es_administrador = False
         
         # Obtener todos los usuarios y sus perfiles
@@ -221,30 +235,39 @@ def list_users(request):
         for user in users:
             try:
                 usuario_ext = UsuarioExtendido.objects.get(user=user)
-                perfil = usuario_ext.perfil.nombre_perfil if usuario_ext.perfil else "Sin perfil asignado"
+                perfiles = [p.nombre_perfil for p in usuario_ext.perfiles.all()]
+                perfiles_str = ", ".join(perfiles) if perfiles else "Sin perfiles asignados"
             except UsuarioExtendido.DoesNotExist:
-                perfil = "Sin perfil asignado"
+                print(f"Error: UsuarioExtendido no existe para el usuario {user.username}")
+                perfiles_str = "Sin perfiles asignados"
             
             # Obtener la última modificación de la bitácora
-            ultima_modificacion = Bitacora.objects.filter(
-                descripcion__icontains=user.username,
-                tipo_accion__in=['CREATE', 'UPDATE']
-            ).order_by('-fecha_hora').first()
+            try:
+                ultima_modificacion = Bitacora.objects.filter(
+                    descripcion__icontains=user.username,
+                    tipo_accion__in=['CREATE', 'UPDATE']
+                ).order_by('-fecha_hora').first()
+            except Exception as e:
+                print(f"Error al obtener la última modificación para {user.username}: {str(e)}")
+                ultima_modificacion = None
             
             usuarios_info.append({
                 'user': user,
-                'perfil': perfil,
+                'perfiles': perfiles_str,
                 'can_edit': es_administrador or user == request.user,
                 'ultima_modificacion': ultima_modificacion
             })
         
         # Registrar en bitácora
-        registrar_evento(
-            request.user,
-            'VIEW',
-            'USER',
-            'Visualización de lista de usuarios'
-        )
+        try:
+            registrar_evento(
+                request.user,
+                'VIEW',
+                'USER',
+                'Visualización de lista de usuarios'
+            )
+        except Exception as e:
+            print(f"Error al registrar evento en bitácora: {str(e)}")
         
         return render(request, 'list_users.html', {
             'usuarios_info': usuarios_info,
@@ -254,7 +277,10 @@ def list_users(request):
     except Exception as e:
         print(f"Error en list_users: {str(e)}")
         return render(request, 'list_users.html', {
-            'error': 'Error al cargar la lista de usuarios'
+            'error': f'Error al cargar la lista de usuarios: {str(e)}',
+            'usuarios_info': [],
+            'es_administrador': False,
+            'current_user': request.user
         })
 
 @custom_login_required
@@ -310,16 +336,17 @@ def edit_user(request, user_id):
             
             user.save()
             
-            # Actualizar perfil si es administrador
+            # Actualizar perfiles si es administrador
             try:
                 usuario_actual = UsuarioExtendido.objects.get(user=request.user)
-                if usuario_actual.perfil.nombre_perfil == 'Administrador':
+                if usuario_actual.es_administrador():
                     usuario_editar = UsuarioExtendido.objects.get(user=user)
-                    perfil_id = request.POST.get('perfil')
-                    if perfil_id:
-                        perfil = get_object_or_404(Perfil, id=perfil_id)
-                        usuario_editar.perfil = perfil
-                        usuario_editar.save()
+                    perfiles_ids = request.POST.getlist('perfiles')
+                    if perfiles_ids:
+                        perfiles = Perfil.objects.filter(id_perfil__in=perfiles_ids)
+                        usuario_editar.perfiles.set(perfiles)
+                    else:
+                        usuario_editar.perfiles.clear()
             except (UsuarioExtendido.DoesNotExist, AttributeError):
                 pass
             
@@ -340,14 +367,14 @@ def edit_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
     try:
         usuario_extendido = UsuarioExtendido.objects.get(user=user)
-        perfil_actual = usuario_extendido.perfil
+        perfiles_actuales = usuario_extendido.perfiles.all()
     except UsuarioExtendido.DoesNotExist:
-        perfil_actual = None
+        perfiles_actuales = []
     
     # Verificar si el usuario actual es administrador
     try:
         usuario_actual = UsuarioExtendido.objects.get(user=request.user)
-        es_administrador = usuario_actual.perfil.nombre_perfil == 'Administrador'
+        es_administrador = usuario_actual.es_administrador()
     except (UsuarioExtendido.DoesNotExist, AttributeError):
         es_administrador = False
     
@@ -355,7 +382,7 @@ def edit_user(request, user_id):
     
     return render(request, 'edit_user.html', {
         'user': user,
-        'perfil_actual': perfil_actual,
+        'perfiles_actuales': perfiles_actuales,
         'perfiles': perfiles,
         'es_administrador': es_administrador
     })
@@ -486,6 +513,15 @@ def create_cloud(request):
             user_create=request.user
         )
         
+        # Encontrar el ID más pequeño disponible
+        ids_existentes = set(CLOUD.objects.values_list('id_cloud', flat=True))
+        id_nuevo = 1
+        while id_nuevo in ids_existentes:
+            id_nuevo += 1
+        
+        cloud.id_cloud = id_nuevo
+        cloud.save()
+        
         # Agregar los ambientes seleccionados
         ambientes_ids = request.POST.getlist('ambientes')
         if ambientes_ids:
@@ -563,13 +599,16 @@ def edit_cloud(request, cloud_id):
                 f'Actualización de cloud: {cloud.nombre_cloud}'
             )
             
+            messages.success(request, 'Cloud actualizado exitosamente.')
             return redirect('list_clouds')
-        except ValueError:
+        except Exception as e:
+            messages.error(request, f'Error actualizando el cloud: {str(e)}')
             ambientes = AMBIENTE.objects.all().order_by('nombre_ambiente')
+            ambientes_seleccionados = cloud.ambientes.all()
             return render(request, 'edit_cloud.html', {
                 'cloud': cloud,
                 'ambientes': ambientes,
-                'error': 'Error actualizando el cloud'
+                'ambientes_seleccionados': ambientes_seleccionados
             })
 
 @custom_login_required
@@ -730,6 +769,14 @@ def create_gerencia(request):
         try:
             form = GerenciaForm(request.POST)
             nueva_gerencia = form.save(commit=False)
+            
+            # Encontrar el ID más pequeño disponible
+            ids_existentes = set(GERENCIA.objects.values_list('id_gerencia', flat=True))
+            id_nuevo = 1
+            while id_nuevo in ids_existentes:
+                id_nuevo += 1
+            
+            nueva_gerencia.id_gerencia = id_nuevo
             nueva_gerencia.user_create = request.user
             nueva_gerencia.save()
             
@@ -765,6 +812,14 @@ def create_puesto(request):
         try:
             form = PuestoForm(request.POST)
             nuevo_puesto = form.save(commit=False)
+            
+            # Encontrar el ID más pequeño disponible
+            ids_existentes = set(PUESTO.objects.values_list('id_puesto', flat=True))
+            id_nuevo = 1
+            while id_nuevo in ids_existentes:
+                id_nuevo += 1
+            
+            nuevo_puesto.id_puesto = id_nuevo
             nuevo_puesto.user_create = request.user
             nuevo_puesto.save()
             
@@ -895,3 +950,721 @@ def delete_puesto(request, puesto_id):
     )
     
     return redirect('list_puestos')
+
+@custom_login_required
+def create_vlan(request):
+    if request.method == 'GET':
+        return render(request, 'create_vlan.html', {
+            'form': VLANForm()
+        })
+    else:
+        try:
+            form = VLANForm(request.POST)
+            if form.is_valid():
+                nueva_vlan = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(VLAN.objects.values_list('id_vlan', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nueva_vlan.id_vlan = id_nuevo
+                nueva_vlan.user_create = request.user
+                nueva_vlan.full_clean()  # Ejecutar validaciones adicionales
+                nueva_vlan.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'VLAN',
+                    f'Creación de VLAN: {nueva_vlan.numero_vlan} - {nueva_vlan.segmento_vlan}/{nueva_vlan.barra_vlan}'
+                )
+                
+                messages.success(request, 'VLAN creada exitosamente.')
+                return redirect('list_vlans')
+            else:
+                return render(request, 'create_vlan.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except ValidationError as e:
+            return render(request, 'create_vlan.html', {
+                'form': VLANForm(request.POST),
+                'error': e.messages[0]
+            })
+        except Exception as e:
+            return render(request, 'create_vlan.html', {
+                'form': VLANForm(),
+                'error': f'Error creando la VLAN: {str(e)}'
+            })
+
+@custom_login_required
+def list_vlans(request):
+    vlans = VLAN.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'VLAN',
+        'Visualización de lista de VLANs'
+    )
+    
+    return render(request, 'list_vlans.html', {'vlans': vlans})
+
+@custom_login_required
+def edit_vlan(request, vlan_id):
+    vlan = get_object_or_404(VLAN, id_vlan=vlan_id)
+    
+    if request.method == 'GET':
+        form = VLANForm(instance=vlan)
+        return render(request, 'edit_vlan.html', {
+            'vlan': vlan,
+            'form': form
+        })
+    else:
+        try:
+            form = VLANForm(request.POST, instance=vlan)
+            if form.is_valid():
+                vlan = form.save(commit=False)
+                vlan.full_clean()  # Ejecutar validaciones adicionales
+                vlan.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'VLAN',
+                    f'Actualización de VLAN: {vlan.numero_vlan} - {vlan.segmento_vlan}/{vlan.barra_vlan}'
+                )
+                
+                messages.success(request, 'VLAN actualizada exitosamente.')
+                return redirect('list_vlans')
+            else:
+                return render(request, 'edit_vlan.html', {
+                    'vlan': vlan,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except ValidationError as e:
+            return render(request, 'edit_vlan.html', {
+                'vlan': vlan,
+                'form': form,
+                'error': e.messages[0]
+            })
+        except Exception as e:
+            return render(request, 'edit_vlan.html', {
+                'vlan': vlan,
+                'form': form,
+                'error': f'Error actualizando la VLAN: {str(e)}'
+            })
+
+@custom_login_required
+def delete_vlan(request, vlan_id):
+    vlan = get_object_or_404(VLAN, id_vlan=vlan_id)
+    info_vlan = f"VLAN {vlan.numero_vlan} - {vlan.segmento_vlan}/{vlan.barra_vlan}"
+    vlan.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'VLAN',
+        f'Eliminación de VLAN: {info_vlan}'
+    )
+    
+    messages.success(request, 'VLAN eliminada exitosamente.')
+    return redirect('list_vlans')
+
+@custom_login_required
+def get_ambientes_by_cloud(request, cloud_id):
+    try:
+        cloud = CLOUD.objects.get(id_cloud=cloud_id)
+        ambientes = cloud.ambientes.all()
+        return JsonResponse({
+            'ambientes': [
+                {'id': ambiente.id_ambiente, 'nombre': ambiente.nombre_ambiente}
+                for ambiente in ambientes
+            ]
+        })
+    except CLOUD.DoesNotExist:
+        return JsonResponse({'error': 'Cloud no encontrada'}, status=404)
+
+@custom_login_required
+def create_proyecto(request):
+    if request.method == 'GET':
+        return render(request, 'create_proyecto.html', {
+            'form': ProyectoForm()
+        })
+    else:
+        try:
+            form = ProyectoForm(request.POST)
+            if form.is_valid():
+                nuevo_proyecto = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(PROYECTO.objects.values_list('id_proyecto', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nuevo_proyecto.id_proyecto = id_nuevo
+                nuevo_proyecto.user_create = request.user
+                nuevo_proyecto.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'PROYECTO',
+                    f'Creación de proyecto: {nuevo_proyecto.nombre_proyecto}'
+                )
+                
+                messages.success(request, 'Proyecto creado exitosamente.')
+                return redirect('list_proyectos')
+            else:
+                return render(request, 'create_proyecto.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'create_proyecto.html', {
+                'form': ProyectoForm(),
+                'error': f'Error creando el proyecto: {str(e)}'
+            })
+
+@custom_login_required
+def list_proyectos(request):
+    proyectos = PROYECTO.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'PROYECTO',
+        'Visualización de lista de proyectos'
+    )
+    
+    return render(request, 'list_proyectos.html', {'proyectos': proyectos})
+
+@custom_login_required
+def edit_proyecto(request, proyecto_id):
+    proyecto = get_object_or_404(PROYECTO, id_proyecto=proyecto_id)
+    
+    if request.method == 'GET':
+        form = ProyectoForm(instance=proyecto)
+        return render(request, 'edit_proyecto.html', {
+            'proyecto': proyecto,
+            'form': form
+        })
+    else:
+        try:
+            form = ProyectoForm(request.POST, instance=proyecto)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'PROYECTO',
+                    f'Actualización de proyecto: {proyecto.nombre_proyecto}'
+                )
+                
+                messages.success(request, 'Proyecto actualizado exitosamente.')
+                return redirect('list_proyectos')
+            else:
+                return render(request, 'edit_proyecto.html', {
+                    'proyecto': proyecto,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_proyecto.html', {
+                'proyecto': proyecto,
+                'form': form,
+                'error': f'Error actualizando el proyecto: {str(e)}'
+            })
+
+@custom_login_required
+def delete_proyecto(request, proyecto_id):
+    proyecto = get_object_or_404(PROYECTO, id_proyecto=proyecto_id)
+    nombre_proyecto = proyecto.nombre_proyecto
+    proyecto.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'PROYECTO',
+        f'Eliminación de proyecto: {nombre_proyecto}'
+    )
+    
+    messages.success(request, 'Proyecto eliminado exitosamente.')
+    return redirect('list_proyectos')
+
+@custom_login_required
+def create_status_proyecto(request):
+    if request.method == 'GET':
+        return render(request, 'create_status_proyecto.html', {
+            'form': StatusProyectoForm()
+        })
+    else:
+        try:
+            form = StatusProyectoForm(request.POST)
+            if form.is_valid():
+                nuevo_status = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(STATUS_PROYECTO.objects.values_list('id_status', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nuevo_status.id_status = id_nuevo
+                nuevo_status.user_create = request.user
+                nuevo_status.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'STATUS_PROYECTO',
+                    f'Creación de estado de proyecto: {nuevo_status.nombre_status}'
+                )
+                
+                messages.success(request, 'Estado de proyecto creado exitosamente.')
+                return redirect('list_status_proyectos')
+            else:
+                return render(request, 'create_status_proyecto.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'create_status_proyecto.html', {
+                'form': StatusProyectoForm(),
+                'error': f'Error creando el estado de proyecto: {str(e)}'
+            })
+
+@custom_login_required
+def list_status_proyectos(request):
+    status_proyectos = STATUS_PROYECTO.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'STATUS_PROYECTO',
+        'Visualización de lista de estados de proyecto'
+    )
+    
+    return render(request, 'list_status_proyectos.html', {'status_proyectos': status_proyectos})
+
+@custom_login_required
+def edit_status_proyecto(request, status_id):
+    status = get_object_or_404(STATUS_PROYECTO, id_status=status_id)
+    
+    if request.method == 'GET':
+        form = StatusProyectoForm(instance=status)
+        return render(request, 'edit_status_proyecto.html', {
+            'status': status,
+            'form': form
+        })
+    else:
+        try:
+            form = StatusProyectoForm(request.POST, instance=status)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'STATUS_PROYECTO',
+                    f'Actualización de estado de proyecto: {status.nombre_status}'
+                )
+                
+                messages.success(request, 'Estado de proyecto actualizado exitosamente.')
+                return redirect('list_status_proyectos')
+            else:
+                return render(request, 'edit_status_proyecto.html', {
+                    'status': status,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_status_proyecto.html', {
+                'status': status,
+                'form': form,
+                'error': f'Error actualizando el estado de proyecto: {str(e)}'
+            })
+
+@custom_login_required
+def delete_status_proyecto(request, status_id):
+    status = get_object_or_404(STATUS_PROYECTO, id_status=status_id)
+    nombre_status = status.nombre_status
+    status.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'STATUS_PROYECTO',
+        f'Eliminación de estado de proyecto: {nombre_status}'
+    )
+    
+    messages.success(request, 'Estado de proyecto eliminado exitosamente.')
+    return redirect('list_status_proyectos')
+
+@custom_login_required
+def create_pais(request):
+    if request.method == 'GET':
+        return render(request, 'create_pais.html', {
+            'form': PaisForm()
+        })
+    else:
+        try:
+            form = PaisForm(request.POST)
+            if form.is_valid():
+                nuevo_pais = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(PAIS.objects.values_list('id_pais', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nuevo_pais.id_pais = id_nuevo
+                nuevo_pais.user_create = request.user
+                nuevo_pais.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'PAIS',
+                    f'Creación de país: {nuevo_pais.nombre_pais}'
+                )
+                
+                messages.success(request, 'País creado exitosamente.')
+                return redirect('list_paises')
+            else:
+                return render(request, 'create_pais.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'create_pais.html', {
+                'form': PaisForm(),
+                'error': f'Error creando el país: {str(e)}'
+            })
+
+@custom_login_required
+def list_paises(request):
+    paises = PAIS.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'PAIS',
+        'Visualización de lista de países'
+    )
+    
+    return render(request, 'list_paises.html', {'paises': paises})
+
+@custom_login_required
+def edit_pais(request, pais_id):
+    pais = get_object_or_404(PAIS, id_pais=pais_id)
+    
+    if request.method == 'GET':
+        form = PaisForm(instance=pais)
+        return render(request, 'edit_pais.html', {
+            'pais': pais,
+            'form': form
+        })
+    else:
+        try:
+            form = PaisForm(request.POST, instance=pais)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'PAIS',
+                    f'Actualización de país: {pais.nombre_pais}'
+                )
+                
+                messages.success(request, 'País actualizado exitosamente.')
+                return redirect('list_paises')
+            else:
+                return render(request, 'edit_pais.html', {
+                    'pais': pais,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_pais.html', {
+                'pais': pais,
+                'form': form,
+                'error': f'Error actualizando el país: {str(e)}'
+            })
+
+@custom_login_required
+def delete_pais(request, pais_id):
+    pais = get_object_or_404(PAIS, id_pais=pais_id)
+    nombre_pais = pais.nombre_pais
+    pais.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'PAIS',
+        f'Eliminación de país: {nombre_pais}'
+    )
+    
+    messages.success(request, 'País eliminado exitosamente.')
+    return redirect('list_paises')
+
+@custom_login_required
+def create_red(request):
+    if request.method == 'GET':
+        return render(request, 'create_red.html', {
+            'form': RedForm()
+        })
+    else:
+        try:
+            form = RedForm(request.POST)
+            if form.is_valid():
+                nueva_red = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(RED.objects.values_list('id_red', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nueva_red.id_red = id_nuevo
+                nueva_red.user_create = request.user
+                nueva_red.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'RED',
+                    f'Creación de red: {nueva_red.nombre_red}'
+                )
+                
+                messages.success(request, 'Red creada exitosamente.')
+                return redirect('list_redes')
+            else:
+                return render(request, 'create_red.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'create_red.html', {
+                'form': RedForm(),
+                'error': f'Error creando la red: {str(e)}'
+            })
+
+@custom_login_required
+def list_redes(request):
+    redes = RED.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'RED',
+        'Visualización de lista de redes'
+    )
+    
+    return render(request, 'list_redes.html', {'redes': redes})
+
+@custom_login_required
+def edit_red(request, red_id):
+    red = get_object_or_404(RED, id_red=red_id)
+    
+    if request.method == 'GET':
+        form = RedForm(instance=red)
+        return render(request, 'edit_red.html', {
+            'red': red,
+            'form': form
+        })
+    else:
+        try:
+            form = RedForm(request.POST, instance=red)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'RED',
+                    f'Actualización de red: {red.nombre_red}'
+                )
+                
+                messages.success(request, 'Red actualizada exitosamente.')
+                return redirect('list_redes')
+            else:
+                return render(request, 'edit_red.html', {
+                    'red': red,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_red.html', {
+                'red': red,
+                'form': form,
+                'error': f'Error actualizando la red: {str(e)}'
+            })
+
+@custom_login_required
+def delete_red(request, red_id):
+    red = get_object_or_404(RED, id_red=red_id)
+    nombre_red = red.nombre_red
+    red.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'RED',
+        f'Eliminación de red: {nombre_red}'
+    )
+    
+    messages.success(request, 'Red eliminada exitosamente.')
+    return redirect('list_redes')
+
+@custom_login_required
+def create_uso_red(request):
+    if request.method == 'GET':
+        return render(request, 'create_uso_red.html', {
+            'form': UsoRedForm()
+        })
+    else:
+        try:
+            form = UsoRedForm(request.POST)
+            if form.is_valid():
+                nuevo_uso = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(USO_RED.objects.values_list('id_uso_red', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nuevo_uso.id_uso_red = id_nuevo
+                nuevo_uso.user_create = request.user
+                nuevo_uso.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'USO_RED',
+                    f'Creación de uso de red: {nuevo_uso.nombre_uso}'
+                )
+                
+                messages.success(request, 'Uso de red creado exitosamente.')
+                return redirect('list_usos_red')
+            else:
+                return render(request, 'create_uso_red.html', {
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'create_uso_red.html', {
+                'form': UsoRedForm(),
+                'error': f'Error creando el uso de red: {str(e)}'
+            })
+
+@custom_login_required
+def list_usos_red(request):
+    usos = USO_RED.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'USO_RED',
+        'Visualización de lista de usos de red'
+    )
+    
+    return render(request, 'list_usos_red.html', {'usos': usos})
+
+@custom_login_required
+def edit_uso_red(request, uso_id):
+    uso = get_object_or_404(USO_RED, id_uso_red=uso_id)
+    
+    if request.method == 'GET':
+        form = UsoRedForm(instance=uso)
+        return render(request, 'edit_uso_red.html', {
+            'uso': uso,
+            'form': form
+        })
+    else:
+        try:
+            form = UsoRedForm(request.POST, instance=uso)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'USO_RED',
+                    f'Actualización de uso de red: {uso.nombre_uso}'
+                )
+                
+                messages.success(request, 'Uso de red actualizado exitosamente.')
+                return redirect('list_usos_red')
+            else:
+                return render(request, 'edit_uso_red.html', {
+                    'uso': uso,
+                    'form': form,
+                    'error': 'Por favor verifique los datos ingresados'
+                })
+        except Exception as e:
+            return render(request, 'edit_uso_red.html', {
+                'uso': uso,
+                'form': form,
+                'error': f'Error actualizando el uso de red: {str(e)}'
+            })
+
+@custom_login_required
+def delete_uso_red(request, uso_id):
+    uso = get_object_or_404(USO_RED, id_uso_red=uso_id)
+    nombre_uso = uso.nombre_uso
+    uso.delete()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'DELETE',
+        'USO_RED',
+        f'Eliminación de uso de red: {nombre_uso}'
+    )
+    
+    messages.success(request, 'Uso de red eliminado exitosamente.')
+    return redirect('list_usos_red')
+
+@custom_login_required
+def get_proyectos_by_uso_red(request, uso_red_id):
+    try:
+        uso_red = get_object_or_404(USO_RED, id_uso_red=uso_red_id)
+        proyectos = PROYECTO.objects.filter(uso_red=uso_red)
+        data = [{'id': p.id_proyecto, 'nombre': p.nombre_proyecto} for p in proyectos]
+        return JsonResponse({'proyectos': data})
+    except USO_RED.DoesNotExist:
+        return JsonResponse({'error': 'Uso de red no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': 'Error al obtener proyectos'}, status=500)

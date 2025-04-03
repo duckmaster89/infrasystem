@@ -12,8 +12,6 @@
             </div>
             
             <div class="ambiente-info">
-                <p><strong>Creado por:</strong> {{ambiente.user_create}}</p>
-                <p><strong>Fecha:</strong> {{ambiente.fecha_creacion|date:"d/m/Y"}}</p>
                 <p class="ambiente-description">{{ambiente.descripcion_ambiente}}</p>
             </div>
 
@@ -101,10 +99,6 @@
     .ambiente-info p {
         margin: 0;
         line-height: 1.4;
-    }
-
-    .ambiente-info strong {
-        color: var(--dark-gray);
     }
 
     .ambiente-description {

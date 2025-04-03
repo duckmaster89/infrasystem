@@ -22,7 +22,10 @@
                 <div class="item-body">
                     <p class="email">{{info.user.email|default:"No email"}}</p>
                     <p class="name">{{info.user.first_name}} {{info.user.last_name}}</p>
-                    <p class="profile">Perfil: {{info.perfil}}</p>
+                    <p class="profiles">
+                        <strong>Perfiles:</strong><br>
+                        {{info.perfiles}}
+                    </p>
                 </div>
                 <p><strong>Fecha de registro:</strong> {{info.user.date_joined|date:"d/m/Y"}}</p>
                 <p><strong>Estado:</strong> {% if info.user.is_active %}Activo{% else %}Inactivo{% endif %}</p>
@@ -81,104 +84,105 @@
 <style>
     .list-container {
         max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
+        margin: 2rem auto;
+        padding: 0 1rem;
     }
 
     .list-title {
-        color: var(--claro-red);
+        color: #E30613;
         text-align: center;
-        margin-bottom: 3rem;
-        font-size: 2.5rem;
-        font-weight: bold;
+        margin-bottom: 2rem;
     }
 
     .grid-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
     }
 
     .user-card {
-        background-color: var(--white);
+        background: white;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        border: 1px solid #eee;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
     }
 
     .user-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
     .user-header {
-        border-bottom: 2px solid var(--claro-red);
-        padding-bottom: 1rem;
-        margin-bottom: 1rem;
+        background-color: #E30613;
+        color: white;
+        padding: 1rem;
     }
 
     .user-title {
-        color: var(--claro-red);
-        font-size: 1.5rem;
         margin: 0;
-        text-align: center;
-        font-weight: bold;
+        font-size: 1.25rem;
     }
 
     .user-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
+        padding: 1.5rem;
     }
 
-    .user-info p {
-        margin: 0;
+    .item-body {
+        margin-bottom: 1rem;
+    }
+
+    .email {
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .name {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .profiles {
+        margin-bottom: 0.5rem;
         line-height: 1.4;
     }
 
-    .user-info strong {
-        color: var(--dark-gray);
-    }
-
     .last-modified {
+        font-size: 0.875rem;
+        color: #666;
         margin-top: 1rem;
-        padding: 0.75rem;
-        background-color: #f8f9fa;
-        border-radius: 4px;
-        font-size: 0.9rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
     }
 
     .action-buttons {
+        padding: 1rem;
+        border-top: 1px solid #eee;
         display: flex;
-        gap: 1rem;
-        margin-top: auto;
-        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: flex-end;
     }
 
     .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
         text-decoration: none;
-        font-weight: 500;
+        font-size: 0.875rem;
         transition: all 0.3s ease;
     }
 
     .edit-btn {
-        background-color: var(--claro-red);
+        background-color: #E30613;
         color: white;
     }
 
     .edit-btn:hover {
-        background-color: #c41230;
+        background-color: #c70512;
     }
 
     .delete-btn {
@@ -187,16 +191,23 @@
     }
 
     .delete-btn:hover {
-        background-color: #bb2d3b;
+        background-color: #c82333;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
     }
 
     .create-btn {
-        background-color: #198754;
+        background-color: #28a745;
         color: white;
     }
 
     .create-btn:hover {
-        background-color: #157347;
+        background-color: #218838;
     }
 
     .back-btn {
@@ -205,43 +216,36 @@
     }
 
     .back-btn:hover {
-        background-color: #5c636a;
+        background-color: #5a6268;
     }
 
     .current-user-label {
-        background-color: #0dcaf0;
-        color: white;
-        padding: 0.5rem 1rem;
+        background-color: #e9ecef;
+        padding: 0.25rem 0.5rem;
         border-radius: 4px;
-        font-size: 0.9rem;
+        font-size: 0.75rem;
+        color: #495057;
     }
 
     .no-permission-label {
         color: #6c757d;
-        font-style: italic;
-    }
-
-    .action-bar {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
+        font-size: 0.875rem;
     }
 
     .error-message {
         background-color: #f8d7da;
-        color: #842029;
+        color: #721c24;
         padding: 1rem;
         border-radius: 4px;
-        margin-bottom: 2rem;
-        text-align: center;
+        margin-bottom: 1rem;
     }
 
     .no-data-message {
         text-align: center;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
         color: #6c757d;
-        font-style: italic;
-        margin: 2rem 0;
     }
 </style>
 

@@ -1,114 +1,188 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
-    <h1><i class="fas fa-list"></i> Listar</h1>
+<div class="submenu-container">
+    <h1 class="submenu-title">
+        <i class="fas fa-list"></i>
+        Listar Elementos
+    </h1>
+
     <div class="button-grid">
         <a href="{% url 'list_ambiente' %}" class="menu-button">
             <i class="fas fa-server"></i>
-            <span class="button-title">Ambientes</span>
-            <span class="button-description">Ver lista de ambientes</span>
+            <div class="button-text">
+                <h3>Ambientes</h3>
+                <p>Ver listado de ambientes de infraestructura</p>
+            </div>
         </a>
+
         <a href="{% url 'list_users' %}" class="menu-button">
             <i class="fas fa-users"></i>
-            <span class="button-title">Usuarios</span>
-            <span class="button-description">Ver lista de usuarios</span>
+            <div class="button-text">
+                <h3>Usuarios</h3>
+                <p>Ver listado de usuarios del sistema</p>
+            </div>
         </a>
+
         <a href="{% url 'list_perfiles' %}" class="menu-button">
-            <i class="fas fa-user-shield"></i>
-            <span class="button-title">Perfiles</span>
-            <span class="button-description">Ver lista de perfiles</span>
+            <i class="fas fa-id-card"></i>
+            <div class="button-text">
+                <h3>Perfiles</h3>
+                <p>Ver listado de perfiles de usuario</p>
+            </div>
         </a>
+
         <a href="{% url 'list_clouds' %}" class="menu-button">
             <i class="fas fa-cloud"></i>
-            <span class="button-title">Clouds</span>
-            <span class="button-description">Ver lista de clouds</span>
+            <div class="button-text">
+                <h3>Cloud</h3>
+                <p>Ver listado de proveedores de cloud</p>
+            </div>
         </a>
+
         <a href="{% url 'list_solicitantes' %}" class="menu-button">
             <i class="fas fa-user-tie"></i>
-            <span class="button-title">Solicitantes</span>
-            <span class="button-description">Ver lista de solicitantes</span>
+            <div class="button-text">
+                <h3>Solicitantes</h3>
+                <p>Ver listado de solicitantes de infraestructura</p>
+            </div>
         </a>
+
         <a href="{% url 'list_gerencias' %}" class="menu-button">
             <i class="fas fa-building"></i>
-            <span class="button-title">Gerencias</span>
-            <span class="button-description">Ver lista de gerencias</span>
+            <div class="button-text">
+                <h3>Gerencias</h3>
+                <p>Ver listado de gerencias en el sistema</p>
+            </div>
         </a>
+
         <a href="{% url 'list_puestos' %}" class="menu-button">
-            <i class="fas fa-briefcase"></i>
-            <span class="button-title">Puestos</span>
-            <span class="button-description">Ver lista de puestos</span>
+            <i class="fas fa-user-tie"></i>
+            <div class="button-text">
+                <h3>Puestos</h3>
+                <p>Ver listado de puestos en el sistema</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_vlans' %}" class="menu-button">
+            <i class="fas fa-network-wired"></i>
+            <div class="button-text">
+                <h3>VLANs</h3>
+                <p>Ver listado de VLANs y sus redes IPv4</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_proyectos' %}" class="menu-button">
+            <i class="fas fa-project-diagram"></i>
+            <div class="button-text">
+                <h3>Proyectos</h3>
+                <p>Ver listado de proyectos</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_status_proyectos' %}" class="menu-button">
+            <i class="fas fa-tasks"></i>
+            <div class="button-text">
+                <h3>Estados de Proyecto</h3>
+                <p>Ver listado de estados de proyecto</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_paises' %}" class="menu-button">
+            <i class="fas fa-globe-americas"></i>
+            <div class="button-text">
+                <h3>Países</h3>
+                <p>Ver listado de países</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_redes' %}" class="menu-button">
+            <i class="fas fa-network-wired"></i>
+            <div class="button-text">
+                <h3>Redes</h3>
+                <p>Ver listado de redes</p>
+            </div>
+        </a>
+
+        <a href="{% url 'list_usos_red' %}" class="menu-button">
+            <i class="fas fa-network-wired"></i>
+            <div class="button-text">
+                <h3>Usos de Red</h3>
+                <p>Ver listado de usos de red</p>
+            </div>
         </a>
     </div>
 </div>
 
 <style>
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 2rem;
-        text-align: center;
+    .submenu-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .submenu-title {
+        color: var(--dark-gray);
+        font-size: 2rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .button-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-bottom: 3rem;
+        gap: 1.5rem;
     }
 
     .menu-button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: var(--white);
-        color: var(--claro-red);
-        padding: 2rem;
-        border-radius: 8px;
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 1.5rem;
         text-decoration: none;
-        transition: all 0.3s ease;
-        border: 2px solid var(--claro-red);
-        min-height: 200px;
+        color: var(--dark-gray);
+        display: flex;
+        align-items: center;
         gap: 1rem;
+        transition: all 0.3s ease;
     }
 
     .menu-button:hover {
-        background-color: var(--claro-red);
-        color: var(--white);
         transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(226, 10, 22, 0.2);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: var(--claro-red);
+        color: var(--claro-red);
     }
 
     .menu-button i {
-        font-size: 3rem;
-        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        color: var(--claro-red);
     }
 
-    .button-title {
-        font-size: 1.5rem;
-        font-weight: bold;
+    .button-text {
+        flex: 1;
     }
 
-    .button-description {
+    .button-text h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .button-text p {
+        margin: 0.5rem 0 0;
         font-size: 0.9rem;
-        opacity: 0.8;
-        max-width: 200px;
-        line-height: 1.4;
+        color: #666;
     }
 
     @media (max-width: 768px) {
         .button-grid {
             grid-template-columns: 1fr;
-            max-width: 400px;
-            margin: 0 auto 2rem auto;
         }
 
         .menu-button {
-            min-height: 180px;
-        }
-
-        .container {
             padding: 1rem;
         }
     }

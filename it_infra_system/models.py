@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 class AMBIENTE(models.Model):
@@ -10,10 +11,8 @@ class AMBIENTE(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     user_create = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     
-    
     def __str__(self):
-        return self.nombre_ambiente + ' by -' + self.user_create.username + ' Creado el:' + self.fecha_creacion.strftime("%d/%m/%Y %H:%M")
-        #return f"{self.nombre_ambiente} Creado por: {self.user_create.username} (Creado el: {self.fecha_creacion.strftime("%d/%m/%Y %H:%M")})"
+        return self.nombre_ambiente
 
 class Bitacora(models.Model):
     TIPO_ACCION = [
@@ -56,10 +55,17 @@ class Perfil(models.Model):
 
 class UsuarioExtendido(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    perfil = models.ForeignKey(Perfil, on_delete=models.SET_NULL, null=True, blank=True)
+    perfiles = models.ManyToManyField(Perfil, related_name='usuarios', blank=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.perfil.nombre_perfil if self.perfil else 'Sin perfil'}"
+        perfiles_str = ', '.join([p.nombre_perfil for p in self.perfiles.all()])
+        return f"{self.user.username} - {perfiles_str if perfiles_str else 'Sin perfiles'}"
+
+    def tiene_perfil(self, nombre_perfil):
+        return self.perfiles.filter(nombre_perfil=nombre_perfil).exists()
+
+    def es_administrador(self):
+        return self.perfiles.filter(nombre_perfil='Administrador').exists()
 
 class CLOUD(models.Model):
     id_cloud = models.AutoField(primary_key=True)
@@ -116,4 +122,117 @@ class PUESTO(models.Model):
         verbose_name = 'Puesto'
         verbose_name_plural = 'Puestos'
         ordering = ['nombre_puesto']
-      
+
+class VLAN(models.Model):
+    id_vlan = models.AutoField(primary_key=True)
+    numero_vlan = models.IntegerField(unique=True, help_text="Número de VLAN (1-4094)")
+    barra_vlan = models.IntegerField(help_text="Máscara de subred en notación CIDR (0-32)")
+    segmento_vlan = models.GenericIPAddressField(protocol='IPv4', help_text="Dirección IPv4 del segmento")
+    uso_red = models.ForeignKey('USO_RED', on_delete=models.SET_NULL, null=True, blank=True)
+    cloud = models.ForeignKey(CLOUD, on_delete=models.CASCADE, related_name='vlans', help_text="Cloud al que pertenece la VLAN")
+    ambiente = models.ForeignKey(AMBIENTE, on_delete=models.CASCADE, related_name='vlans', null=True, help_text="Ambiente al que pertenece la VLAN")
+    proyecto = models.ForeignKey('PROYECTO', on_delete=models.SET_NULL, null=True, blank=True, help_text="Proyecto asociado a la VLAN")
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'VLAN'
+        verbose_name_plural = 'VLANs'
+        ordering = ['numero_vlan']
+
+    def __str__(self):
+        return f"VLAN {self.numero_vlan} - {self.segmento_vlan}/{self.barra_vlan}"
+
+    def clean(self):
+        # Validar el rango del número de VLAN
+        if self.numero_vlan < 1 or self.numero_vlan > 4094:
+            raise ValidationError({'numero_vlan': 'El número de VLAN debe estar entre 1 y 4094'})
+        
+        # Validar el rango de la barra VLAN
+        if self.barra_vlan < 0 or self.barra_vlan > 32:
+            raise ValidationError({'barra_vlan': 'La máscara CIDR debe estar entre 0 y 32'})
+        
+        # Validar que ambiente y cloud sean proporcionados
+        if not self.ambiente:
+            raise ValidationError({'ambiente': 'El ambiente es obligatorio'})      
+
+class PROYECTO(models.Model):
+    id_proyecto = models.AutoField(primary_key=True)
+    nombre_proyecto = models.CharField(max_length=100)
+    fecha_solicitud = models.DateField()
+    fecha_asignacion = models.DateField(null=True, blank=True)
+    solicitante = models.ForeignKey(SOLICITANTE, on_delete=models.SET_NULL, null=True, blank=True)
+    arquitecto = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='proyectos_arquitecto')
+    uso_red = models.ForeignKey('USO_RED', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Uso de Red')
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre_proyecto
+
+    class Meta:
+        db_table = 'proyecto'
+        verbose_name = 'Proyecto'
+        verbose_name_plural = 'Proyectos'      
+
+class STATUS_PROYECTO(models.Model):
+    id_status = models.AutoField(primary_key=True)
+    nombre_status = models.CharField(max_length=100)
+    descripcion_status = models.TextField()
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre_status
+
+    class Meta:
+        db_table = 'status_proyecto'
+        verbose_name = 'Estado de Proyecto'
+        verbose_name_plural = 'Estados de Proyecto'
+        ordering = ['nombre_status']      
+
+class PAIS(models.Model):
+    id_pais = models.AutoField(primary_key=True)
+    nombre_pais = models.CharField(max_length=100)
+    abreviatura_pais = models.CharField(max_length=3)
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre_pais
+
+    class Meta:
+        db_table = 'pais'
+        verbose_name = 'País'
+        verbose_name_plural = 'Países'
+        ordering = ['nombre_pais']      
+
+class RED(models.Model):
+    id_red = models.AutoField(primary_key=True)
+    nombre_red = models.CharField(max_length=100)
+    descripcion_red = models.TextField()
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre_red
+
+    class Meta:
+        verbose_name = 'Red'
+        verbose_name_plural = 'Redes'
+        ordering = ['nombre_red']      
+
+class USO_RED(models.Model):
+    id_uso_red = models.AutoField(primary_key=True)
+    nombre_uso = models.CharField(max_length=100)
+    descripcion_uso = models.TextField()
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nombre_uso
+
+    class Meta:
+        verbose_name = 'Uso de Red'
+        verbose_name_plural = 'Usos de Red'
+        ordering = ['nombre_uso']      

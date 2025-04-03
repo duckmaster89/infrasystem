@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Lista de Países</h2>
+        <a href="{% url 'create_pais' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Crear Nuevo País
+        </a>
+    </div>
+    
+    {% if paises %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Abreviatura</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pais in paises %}
+                <tr>
+                    <td>{{ pais.id_pais }}</td>
+                    <td>{{ pais.nombre_pais }}</td>
+                    <td>{{ pais.abreviatura_pais }}</td>
+                    <td>
+                        <a href="{% url 'edit_pais' pais.id_pais %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="{% url 'delete_pais' pais.id_pais %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar este país?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No hay países registrados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
