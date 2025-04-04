@@ -957,10 +957,38 @@ def delete_puesto(request, puesto_id):
 def create_vlan(request):
     if request.method == 'POST':
         form = VLANForm(request.POST)
-        if form.is_valid():
-            try:
+        try:
+            if form.is_valid():
+                # Obtener los datos del formulario
+                numero_vlan = form.cleaned_data['numero_vlan']
+                cloud = form.cleaned_data['cloud']
+                
+                # Validar que el número de VLAN no exista en la misma cloud
+                if VLAN.objects.filter(numero_vlan=numero_vlan, cloud=cloud).exists():
+                    messages.error(request, f'El número de VLAN {numero_vlan} ya existe en la cloud {cloud}. Por favor, elija otro número.')
+                    form.add_error('numero_vlan', f'Este número de VLAN ya existe en la cloud {cloud}.')
+                    return render(request, 'create_vlan.html', {'form': form})
+
                 vlan = form.save(commit=False)
                 vlan.user_create = request.user
+                
+                # Validar que el segmento y barra sean válidos
+                try:
+                    network = ipaddress.IPv4Network(f"{vlan.segmento_vlan}/{vlan.barra_vlan}")
+                except ValueError as e:
+                    messages.error(request, f'El segmento de red o la barra no son válidos: {str(e)}')
+                    form.add_error('segmento_vlan', f'El segmento de red o la barra no son válidos: {str(e)}')
+                    return render(request, 'create_vlan.html', {'form': form})
+                
+                # Realizar validaciones adicionales del modelo
+                try:
+                    vlan.full_clean()
+                except ValidationError as e:
+                    for field, errors in e.message_dict.items():
+                        form.add_error(field, errors[0])
+                        messages.error(request, f'Error en {field}: {errors[0]}')
+                    return render(request, 'create_vlan.html', {'form': form})
+                
                 vlan.save()
 
                 # Crear tabla dinámica para la VLAN
@@ -978,9 +1006,6 @@ def create_vlan(request):
                     """)
 
                 # Calcular el rango de IPs disponibles
-                network = ipaddress.IPv4Network(f"{vlan.segmento_vlan}/{vlan.barra_vlan}")
-                # Excluir gateway (primera IP), HSRP1 (segunda IP), HSRP2 (tercera IP)
-                # y broadcast (última IP)
                 rango_ips = f"{network[4]} - {network[-2]}"  # Desde la cuarta IP hasta una antes del broadcast
 
                 # Crear registro en CONTROL_VLAN
@@ -1002,12 +1027,19 @@ def create_vlan(request):
 
                 messages.success(request, 'VLAN creada exitosamente.')
                 return redirect('list_vlans')
-            except Exception as e:
-                messages.error(request, f'Error al crear la VLAN: {str(e)}')
-                return render(request, 'it_infra_system/create_vlan.html', {'form': form})
+            else:
+                # Si el formulario no es válido, mostrar los errores
+                for field in form.errors:
+                    for error in form.errors[field]:
+                        messages.error(request, f'Error en {form.fields[field].label}: {error}')
+                return render(request, 'create_vlan.html', {'form': form})
+        except Exception as e:
+            messages.error(request, f'Error al crear la VLAN: {str(e)}')
+            form.add_error(None, f'Error al crear la VLAN: {str(e)}')
+            return render(request, 'create_vlan.html', {'form': form})
     else:
         form = VLANForm()
-    return render(request, 'it_infra_system/create_vlan.html', {'form': form})
+    return render(request, 'create_vlan.html', {'form': form})
 
 @custom_login_required
 def list_vlans(request):

@@ -130,3 +130,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'signin'  # URL para el inicio de sesión
 LOGIN_REDIRECT_URL = 'menu'  # URL después de iniciar sesión exitosamente
 LOGOUT_REDIRECT_URL = 'home'  # URL después de cerrar sesión
+
+# Configuración de mensajes
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-info',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}

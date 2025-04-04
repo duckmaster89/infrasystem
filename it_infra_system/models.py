@@ -125,7 +125,7 @@ class PUESTO(models.Model):
 
 class VLAN(models.Model):
     id_vlan = models.AutoField(primary_key=True)
-    numero_vlan = models.IntegerField(unique=True, help_text="Número de VLAN (1-4094)")
+    numero_vlan = models.IntegerField(help_text="Número de VLAN (1-4094)")
     barra_vlan = models.IntegerField(help_text="Máscara de subred en notación CIDR (0-32)")
     segmento_vlan = models.GenericIPAddressField(protocol='IPv4', help_text="Dirección IPv4 del segmento")
     uso_red = models.ForeignKey('USO_RED', on_delete=models.SET_NULL, null=True, blank=True)
@@ -140,6 +140,7 @@ class VLAN(models.Model):
         verbose_name = 'VLAN'
         verbose_name_plural = 'VLANs'
         ordering = ['numero_vlan']
+        unique_together = ['numero_vlan', 'cloud']  # Asegura que el número de VLAN sea único por cloud
 
     def __str__(self):
         return f"VLAN {self.numero_vlan} - {self.segmento_vlan}/{self.barra_vlan}"
@@ -155,7 +156,7 @@ class VLAN(models.Model):
         
         # Validar que ambiente y cloud sean proporcionados
         if not self.ambiente:
-            raise ValidationError({'ambiente': 'El ambiente es obligatorio'})      
+            raise ValidationError({'ambiente': 'El ambiente es obligatorio'})
 
 class PROYECTO(models.Model):
     id_proyecto = models.AutoField(primary_key=True)

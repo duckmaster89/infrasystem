@@ -75,10 +75,38 @@
         color: var(--claro-gray);
         margin-bottom: 0.5rem;
     }
+
+    .alert {
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border: none;
+    }
+
+    .alert-danger {
+        background-color: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .alert-success {
+        background-color: #D1FAE5;
+        color: #065F46;
+    }
 </style>
 
 <div class="container mt-4">
     <h1><i class="fas fa-network-wired"></i> Crear Nueva VLAN</h1>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {% if error %}
     <div class="alert alert-danger">
@@ -93,34 +121,74 @@
                 <div class="form-group mb-3">
                     <label for="{{ form.numero_vlan.id_for_label }}">{{ form.numero_vlan.label }}</label>
                     {{ form.numero_vlan }}
+                    {% if form.numero_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.numero_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.segmento_vlan.id_for_label }}">{{ form.segmento_vlan.label }}</label>
                     {{ form.segmento_vlan }}
+                    {% if form.segmento_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.segmento_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.barra_vlan.id_for_label }}">{{ form.barra_vlan.label }}</label>
                     {{ form.barra_vlan }}
+                    {% if form.barra_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.barra_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.uso_red.id_for_label }}">{{ form.uso_red.label }}</label>
                     {{ form.uso_red }}
+                    {% if form.uso_red.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.uso_red.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.cloud.id_for_label }}">{{ form.cloud.label }}</label>
                     {{ form.cloud }}
+                    {% if form.cloud.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.cloud.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.ambiente.id_for_label }}">{{ form.ambiente.label }}</label>
                     {{ form.ambiente }}
+                    {% if form.ambiente.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.ambiente.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.red.id_for_label }}">{{ form.red.label }}</label>
                     {{ form.red }}
+                    {% if form.red.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.red.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="form-group mb-3" id="proyecto-container" style="display: none;">
                     <label for="{{ form.proyecto.id_for_label }}">{{ form.proyecto.label }}</label>
                     {{ form.proyecto|safe }}
+                    {% if form.proyecto.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.proyecto.errors|join:", " }}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
