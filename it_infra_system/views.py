@@ -6,11 +6,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
-from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, RedForm, UsoRedForm
-from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED
+from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, REDForm, UsoRedForm
+from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED, CONTROL_VLAN, VLAN_IP
 from django.contrib import messages
 from .decorators import custom_login_required
 from django.http import JsonResponse
+import ipaddress
+from django.db import connection
 
 
 # Create your views here.
@@ -953,52 +955,59 @@ def delete_puesto(request, puesto_id):
 
 @custom_login_required
 def create_vlan(request):
-    if request.method == 'GET':
-        return render(request, 'create_vlan.html', {
-            'form': VLANForm()
-        })
-    else:
-        try:
-            form = VLANForm(request.POST)
-            if form.is_valid():
-                nueva_vlan = form.save(commit=False)
-                
-                # Encontrar el ID más pequeño disponible
-                ids_existentes = set(VLAN.objects.values_list('id_vlan', flat=True))
-                id_nuevo = 1
-                while id_nuevo in ids_existentes:
-                    id_nuevo += 1
-                
-                nueva_vlan.id_vlan = id_nuevo
-                nueva_vlan.user_create = request.user
-                nueva_vlan.full_clean()  # Ejecutar validaciones adicionales
-                nueva_vlan.save()
-                
+    if request.method == 'POST':
+        form = VLANForm(request.POST)
+        if form.is_valid():
+            try:
+                vlan = form.save(commit=False)
+                vlan.user_create = request.user
+                vlan.save()
+
+                # Crear tabla dinámica para la VLAN
+                table_name = f'vlan_{vlan.numero_vlan}'
+                with connection.cursor() as cursor:
+                    cursor.execute(f"""
+                        CREATE TABLE IF NOT EXISTS {table_name} (
+                            id_vlan_ip SERIAL PRIMARY KEY,
+                            ip VARCHAR(15) UNIQUE,
+                            hostname VARCHAR(100),
+                            usuario VARCHAR(100),
+                            fecha_solicitud TIMESTAMP,
+                            status VARCHAR(20) DEFAULT 'disponible'
+                        )
+                    """)
+
+                # Calcular el rango de IPs disponibles
+                network = ipaddress.IPv4Network(f"{vlan.segmento_vlan}/{vlan.barra_vlan}")
+                # Excluir gateway (primera IP), HSRP1 (segunda IP), HSRP2 (tercera IP)
+                # y broadcast (última IP)
+                rango_ips = f"{network[4]} - {network[-2]}"  # Desde la cuarta IP hasta una antes del broadcast
+
+                # Crear registro en CONTROL_VLAN
+                control_vlan = CONTROL_VLAN.objects.create(
+                    nombre_tabla_vlan=table_name,
+                    uso_red=vlan.uso_red,
+                    proyecto=vlan.proyecto,
+                    rango_ips_disponibles=rango_ips,
+                    user_create=request.user
+                )
+
                 # Registrar en bitácora
                 registrar_evento(
                     request.user,
                     'CREATE',
                     'VLAN',
-                    f'Creación de VLAN: {nueva_vlan.numero_vlan} - {nueva_vlan.segmento_vlan}/{nueva_vlan.barra_vlan}'
+                    f'Creación de VLAN: {vlan.numero_vlan} - {vlan.segmento_vlan}/{vlan.barra_vlan}'
                 )
-                
+
                 messages.success(request, 'VLAN creada exitosamente.')
                 return redirect('list_vlans')
-            else:
-                return render(request, 'create_vlan.html', {
-                    'form': form,
-                    'error': 'Por favor verifique los datos ingresados'
-                })
-        except ValidationError as e:
-            return render(request, 'create_vlan.html', {
-                'form': VLANForm(request.POST),
-                'error': e.messages[0]
-            })
-        except Exception as e:
-            return render(request, 'create_vlan.html', {
-                'form': VLANForm(),
-                'error': f'Error creando la VLAN: {str(e)}'
-            })
+            except Exception as e:
+                messages.error(request, f'Error al crear la VLAN: {str(e)}')
+                return render(request, 'it_infra_system/create_vlan.html', {'form': form})
+    else:
+        form = VLANForm()
+    return render(request, 'it_infra_system/create_vlan.html', {'form': form})
 
 @custom_login_required
 def list_vlans(request):
@@ -1065,6 +1074,16 @@ def edit_vlan(request, vlan_id):
 def delete_vlan(request, vlan_id):
     vlan = get_object_or_404(VLAN, id_vlan=vlan_id)
     info_vlan = f"VLAN {vlan.numero_vlan} - {vlan.segmento_vlan}/{vlan.barra_vlan}"
+    
+    # Eliminar la tabla dinámica asociada
+    table_name = f'vlan_{vlan.numero_vlan}'
+    with connection.cursor() as cursor:
+        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+    
+    # Eliminar el registro de CONTROL_VLAN si existe
+    CONTROL_VLAN.objects.filter(nombre_tabla_vlan=table_name).delete()
+    
+    # Eliminar la VLAN
     vlan.delete()
     
     # Registrar en bitácora
@@ -1435,11 +1454,11 @@ def delete_pais(request, pais_id):
 def create_red(request):
     if request.method == 'GET':
         return render(request, 'create_red.html', {
-            'form': RedForm()
+            'form': REDForm()
         })
     else:
         try:
-            form = RedForm(request.POST)
+            form = REDForm(request.POST)
             if form.is_valid():
                 nueva_red = form.save(commit=False)
                 
@@ -1470,7 +1489,7 @@ def create_red(request):
                 })
         except Exception as e:
             return render(request, 'create_red.html', {
-                'form': RedForm(),
+                'form': REDForm(),
                 'error': f'Error creando la red: {str(e)}'
             })
 
@@ -1493,14 +1512,14 @@ def edit_red(request, red_id):
     red = get_object_or_404(RED, id_red=red_id)
     
     if request.method == 'GET':
-        form = RedForm(instance=red)
+        form = REDForm(instance=red)
         return render(request, 'edit_red.html', {
             'red': red,
             'form': form
         })
     else:
         try:
-            form = RedForm(request.POST, instance=red)
+            form = REDForm(request.POST, instance=red)
             if form.is_valid():
                 form.save()
                 
@@ -1668,3 +1687,48 @@ def get_proyectos_by_uso_red(request, uso_red_id):
         return JsonResponse({'error': 'Uso de red no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': 'Error al obtener proyectos'}, status=500)
+
+@custom_login_required
+def get_redes_by_uso_red(request, uso_red_id):
+    redes = RED.objects.filter(uso_red_id=uso_red_id, is_active=True)
+    data = [{'id': red.id_red, 'nombre': f"{red.nombre_red} - {red.segmento_red}/{red.barra_red}"} for red in redes]
+    return JsonResponse(data, safe=False)
+
+@custom_login_required
+def list_control_vlans(request):
+    control_vlans = CONTROL_VLAN.objects.all()
+    
+    # Filtros
+    nombre_tabla = request.GET.get('nombre_tabla', '')
+    uso_red = request.GET.get('uso_red', '')
+    proyecto = request.GET.get('proyecto', '')
+    
+    if nombre_tabla:
+        control_vlans = control_vlans.filter(nombre_tabla_vlan__icontains=nombre_tabla)
+    if uso_red:
+        control_vlans = control_vlans.filter(uso_red__nombre_uso=uso_red)
+    if proyecto:
+        control_vlans = control_vlans.filter(proyecto__nombre_proyecto__icontains=proyecto)
+    
+    # Obtener listas para los selectores
+    usos_red = USO_RED.objects.all()
+    proyectos = PROYECTO.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'CONTROL_VLAN',
+        'Visualización de lista de control de VLANs'
+    )
+    
+    return render(request, 'list_control_vlans.html', {
+        'control_vlans': control_vlans,
+        'usos_red': usos_red,
+        'proyectos': proyectos,
+        'filtros': {
+            'nombre_tabla': nombre_tabla,
+            'uso_red': uso_red,
+            'proyecto': proyecto
+        }
+    })

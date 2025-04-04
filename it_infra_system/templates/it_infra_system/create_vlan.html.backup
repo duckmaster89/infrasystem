@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'it_infra_system/base.html' %}
 
 {% block content %}
 <style>
@@ -64,30 +64,10 @@
         font-weight: 600;
     }
     
-    .list-group-item {
-        border-left: 4px solid var(--claro-red);
-        margin-bottom: 0.5rem;
-        padding: 1rem;
-        background: var(--claro-light-gray);
-    }
-    
-    .alert-info {
-        background-color: var(--claro-light-gray);
-        border: 2px solid var(--claro-border);
-        color: var(--claro-gray);
-        border-radius: 4px;
-    }
-    
     .badge {
         font-size: 0.9rem;
         padding: 0.5rem 0.75rem;
         border-radius: 4px;
-    }
-    
-    .input-group-text {
-        background-color: var(--claro-light-gray);
-        border: 2px solid var(--claro-border);
-        color: var(--claro-gray);
     }
     
     label {
@@ -148,7 +128,7 @@
     </form>
 
     <div class="card">
-        <div class="card-header bg-danger text-white">
+        <div class="card-header">
             <h3 class="mb-0">Información de Red</h3>
         </div>
         <div class="card-body">
@@ -268,18 +248,19 @@ function calcularRed() {
         `Desde: ${primeraIP.join('.')} - Hasta: ${ultimaIP.join('.')}`;
 }
 
+// Event listeners para actualizar la calculadora
+document.getElementById('id_segmento_vlan').addEventListener('input', calcularRed);
+document.getElementById('id_barra_vlan').addEventListener('input', calcularRed);
+
 // Actualizar ambiente cuando cambie el cloud
 document.getElementById('id_cloud').addEventListener('change', function() {
     const cloudId = this.value;
-    const ambienteSelect = document.getElementById('id_ambiente');
-    
-    // Limpiar opciones actuales
-    ambienteSelect.innerHTML = '<option value="">Seleccione un ambiente</option>';
-    
     if (cloudId) {
         fetch(`/get_ambientes_by_cloud/${cloudId}/`)
             .then(response => response.json())
             .then(data => {
+                const ambienteSelect = document.getElementById('id_ambiente');
+                ambienteSelect.innerHTML = '<option value="">---------</option>';
                 data.ambientes.forEach(ambiente => {
                     const option = document.createElement('option');
                     option.value = ambiente.id;
@@ -291,91 +272,63 @@ document.getElementById('id_cloud').addEventListener('change', function() {
     }
 });
 
-// Manejar cambio en uso de red
+// Actualizar redes y proyectos cuando cambie el uso de red
 document.getElementById('id_uso_red').addEventListener('change', function() {
     const usoRedId = this.value;
     const proyectoContainer = document.getElementById('proyecto-container');
     const proyectoSelect = document.getElementById('id_proyecto');
+    const selectedText = this.options[this.selectedIndex].text;
     
     console.log('Uso de Red seleccionado:', usoRedId);
-    console.log('Container encontrado:', proyectoContainer);
-    console.log('Select encontrado:', proyectoSelect);
+    console.log('Texto seleccionado:', selectedText);
     
-    if (usoRedId === '2') { // ID 2 corresponde a "Proyecto Específico"
-        proyectoContainer.style.display = 'block';
-        proyectoSelect.style.display = 'block'; // Asegurarnos que el select también sea visible
-        console.log('Container display:', proyectoContainer.style.display);
-        console.log('Select display:', proyectoSelect.style.display);
-        console.log('Container visibility:', proyectoContainer.style.visibility);
-        console.log('Cargando proyectos...');
-        
-        // Cargar proyectos
-        fetch(`/get_proyectos_by_uso_red/${usoRedId}/`)
-            .then(response => {
-                console.log('Respuesta del servidor:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
+    if (usoRedId) {
+        // Actualizar redes
+        fetch(`/get_redes_by_uso_red/${usoRedId}/`)
+            .then(response => response.json())
             .then(data => {
-                console.log('Datos recibidos:', data);
-                proyectoSelect.innerHTML = '<option value="">Seleccione un proyecto</option>';
+                const redSelect = document.getElementById('id_red');
+                redSelect.innerHTML = '<option value="">---------</option>';
+                data.forEach(red => {
+                    const option = document.createElement('option');
+                    option.value = red.id;
+                    option.textContent = red.nombre;
+                    redSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        // Actualizar proyectos
+        fetch(`/get_proyectos_by_uso_red/${usoRedId}/`)
+            .then(response => response.json())
+            .then(data => {
+                proyectoSelect.innerHTML = '<option value="">---------</option>';
+                data.proyectos.forEach(proyecto => {
+                    const option = document.createElement('option');
+                    option.value = proyecto.id;
+                    option.textContent = proyecto.nombre;
+                    proyectoSelect.appendChild(option);
+                });
                 
-                if (data.proyectos && Array.isArray(data.proyectos)) {
-                    data.proyectos.forEach(proyecto => {
-                        console.log('Agregando proyecto:', proyecto);
-                        const option = document.createElement('option');
-                        option.value = proyecto.id;
-                        option.textContent = proyecto.nombre;
-                        proyectoSelect.appendChild(option);
-                    });
-                    console.log('Proyectos cargados:', data.proyectos.length);
-                    console.log('Select innerHTML:', proyectoSelect.innerHTML);
-                    console.log('Select display después de cargar:', proyectoSelect.style.display);
+                // Mostrar/ocultar contenedor de proyecto basado en el texto seleccionado
+                if (selectedText.toLowerCase() === 'proyecto específico') {
+                    proyectoContainer.style.display = 'block';
+                    proyectoSelect.style.display = 'block';
                 } else {
-                    console.error('Formato de datos inválido:', data);
+                    proyectoContainer.style.display = 'none';
+                    proyectoSelect.style.display = 'none';
                 }
             })
             .catch(error => {
-                console.error('Error al cargar proyectos:', error);
-                proyectoSelect.innerHTML = '<option value="">Error al cargar proyectos</option>';
+                console.error('Error:', error);
+                proyectoContainer.style.display = 'none';
+                proyectoSelect.style.display = 'none';
             });
     } else {
-        console.log('Ocultando selector de proyectos');
+        document.getElementById('id_red').innerHTML = '<option value="">---------</option>';
         proyectoContainer.style.display = 'none';
         proyectoSelect.style.display = 'none';
-        proyectoSelect.innerHTML = '<option value="">Seleccione un proyecto</option>';
     }
-});
-
-// Calcular automáticamente cuando cambien los campos
-document.getElementById('id_segmento_vlan').addEventListener('input', calcularRed);
-document.getElementById('id_barra_vlan').addEventListener('input', calcularRed);
-
-document.addEventListener('DOMContentLoaded', function() {
-    const usoRedSelect = document.getElementById('id_uso_red');
-    const redSelect = document.getElementById('id_red');
-    
-    usoRedSelect.addEventListener('change', function() {
-        const usoRedId = this.value;
-        if (usoRedId) {
-            fetch(`/get_redes_by_uso_red/${usoRedId}/`)
-                .then(response => response.json())
-                .then(data => {
-                    redSelect.innerHTML = '<option value="">---------</option>';
-                    data.forEach(red => {
-                        const option = document.createElement('option');
-                        option.value = red.id;
-                        option.textContent = red.nombre;
-                        redSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error:', error));
-        } else {
-            redSelect.innerHTML = '<option value="">---------</option>';
-        }
-    });
 });
 </script>
 {% endblock %} 

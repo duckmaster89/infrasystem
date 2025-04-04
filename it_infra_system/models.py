@@ -132,6 +132,7 @@ class VLAN(models.Model):
     cloud = models.ForeignKey(CLOUD, on_delete=models.CASCADE, related_name='vlans', help_text="Cloud al que pertenece la VLAN")
     ambiente = models.ForeignKey(AMBIENTE, on_delete=models.CASCADE, related_name='vlans', null=True, help_text="Ambiente al que pertenece la VLAN")
     proyecto = models.ForeignKey('PROYECTO', on_delete=models.SET_NULL, null=True, blank=True, help_text="Proyecto asociado a la VLAN")
+    red = models.ForeignKey('RED', on_delete=models.SET_NULL, null=True, blank=True)
     user_create = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
@@ -210,17 +211,25 @@ class PAIS(models.Model):
 class RED(models.Model):
     id_red = models.AutoField(primary_key=True)
     nombre_red = models.CharField(max_length=100)
-    descripcion_red = models.TextField()
-    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    descripcion_red = models.TextField(null=True, blank=True)
+    segmento_red = models.CharField(max_length=15, null=True, blank=True, default='0.0.0.0')
+    barra_red = models.IntegerField(null=True, blank=True, default=24)
+    ip_inicio = models.CharField(max_length=15, null=True, blank=True)
+    ip_fin = models.CharField(max_length=15, null=True, blank=True)
+    uso_red = models.ForeignKey('USO_RED', on_delete=models.SET_NULL, null=True, blank=True)
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE, related_name='redes_creadas')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    user_update = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='redes_actualizadas')
+    date_update = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.nombre_red
+        return f"{self.nombre_red} - {self.segmento_red}/{self.barra_red}"
 
     class Meta:
+        db_table = 'RED'
         verbose_name = 'Red'
         verbose_name_plural = 'Redes'
-        ordering = ['nombre_red']      
 
 class USO_RED(models.Model):
     id_uso_red = models.AutoField(primary_key=True)
@@ -236,3 +245,38 @@ class USO_RED(models.Model):
         verbose_name = 'Uso de Red'
         verbose_name_plural = 'Usos de Red'
         ordering = ['nombre_uso']      
+
+class CONTROL_VLAN(models.Model):
+    id_control_vlan = models.AutoField(primary_key=True)
+    nombre_tabla_vlan = models.CharField(max_length=100)
+    uso_red = models.ForeignKey('USO_RED', on_delete=models.CASCADE, related_name='control_vlans')
+    proyecto = models.ForeignKey('PROYECTO', on_delete=models.CASCADE, related_name='control_vlans', null=True, blank=True)
+    rango_ips_disponibles = models.CharField(max_length=100, blank=True, null=True)
+    user_create = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'CONTROL_VLAN'
+        verbose_name = 'Control de VLAN'
+        verbose_name_plural = 'Controles de VLAN'
+        ordering = ['nombre_tabla_vlan']
+
+    def __str__(self):
+        return f"{self.nombre_tabla_vlan} - {self.uso_red.nombre_uso} - {self.proyecto.nombre_proyecto if self.proyecto else 'Uso Común'}"
+
+class VLAN_IP(models.Model):
+    id_vlan_ip = models.AutoField(primary_key=True)
+    vlan = models.ForeignKey(VLAN, on_delete=models.CASCADE, related_name='ips')
+    ip = models.GenericIPAddressField(unique=True)
+    hostname = models.CharField(max_length=100, null=True, blank=True)
+    usuario = models.CharField(max_length=100, null=True, blank=True)
+    fecha_solicitud = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, default='disponible')
+
+    class Meta:
+        db_table = 'vlan_ip'
+        verbose_name = 'IP de VLAN'
+        verbose_name_plural = 'IPs de VLAN'
+
+    def __str__(self):
+        return f"{self.ip} - {self.vlan.numero_vlan}"      

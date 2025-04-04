@@ -1,66 +1,96 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Editar Red</h3>
-                </div>
-                <div class="card-body">
-                    {% if error %}
-                        <div class="alert alert-danger" role="alert">
-                            {{ error }}
-                        </div>
-                    {% endif %}
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.nombre_red.id_for_label }}">{{ form.nombre_red.label }}</label>
-                            {{ form.nombre_red }}
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label for="{{ form.descripcion_red.id_for_label }}">{{ form.descripcion_red.label }}</label>
-                            {{ form.descripcion_red }}
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
-                            <a href="{% url 'list_redes' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Volver
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    .card {
-        border: none;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    :root {
+        --claro-red: #E20A17;
+        --claro-gray: #333333;
+        --claro-light-gray: #F8F9FA;
+        --claro-border: #E5E5E5;
     }
     
-    .card-header {
-        background-color: var(--claro-red) !important;
+    .container {
+        max-width: 1200px;
+    }
+    
+    h1 {
+        color: var(--claro-red);
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-control {
+        border-radius: 4px;
+        border: 2px solid var(--claro-border);
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 0.2rem rgba(226, 10, 23, 0.25);
     }
     
     .btn-primary {
         background-color: var(--claro-red);
         border-color: var(--claro-red);
+        border-radius: 4px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .btn-primary:hover {
-        background-color: #c82333;
-        border-color: #c82333;
+        background-color: #C20812;
+        border-color: #C20812;
+    }
+    
+    label {
+        font-weight: 600;
+        color: var(--claro-gray);
+        margin-bottom: 0.5rem;
     }
 </style>
+
+<div class="container mt-4">
+    <h1><i class="fas fa-network-wired"></i> Editar Red</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mb-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.nombre_red.id_for_label }}">{{ form.nombre_red.label }}</label>
+                    {{ form.nombre_red }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.descripcion_red.id_for_label }}">{{ form.descripcion_red.label }}</label>
+                    {{ form.descripcion_red }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.segmento_red.id_for_label }}">{{ form.segmento_red.label }}</label>
+                    {{ form.segmento_red }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.barra_red.id_for_label }}">{{ form.barra_red.label }}</label>
+                    {{ form.barra_red }}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.uso_red.id_for_label }}">{{ form.uso_red.label }}</label>
+                    {{ form.uso_red }}
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </form>
+</div>
 {% endblock %} 

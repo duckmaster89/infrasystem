@@ -107,4 +107,8 @@ urlpatterns = [
     path('list/usos_red/', views.list_usos_red, name='list_usos_red'),
     path('edit/uso_red/<int:uso_id>/', views.edit_uso_red, name='edit_uso_red'),
     path('delete/uso_red/<int:uso_id>/', views.delete_uso_red, name='delete_uso_red'),
+
+    path('get_redes_by_uso_red/<int:uso_red_id>/', views.get_redes_by_uso_red, name='get_redes_by_uso_red'),
+
+    path('list/control_vlans/', views.list_control_vlans, name='list_control_vlans'),
 ]

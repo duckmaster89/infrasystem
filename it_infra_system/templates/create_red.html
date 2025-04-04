@@ -28,6 +28,31 @@
                             {{ form.descripcion_red }}
                         </div>
                         
+                        <div class="form-group mb-3">
+                            <label for="{{ form.segmento_red.id_for_label }}">{{ form.segmento_red.label }}</label>
+                            {{ form.segmento_red }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.barra_red.id_for_label }}">{{ form.barra_red.label }}</label>
+                            {{ form.barra_red }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.ip_inicio.id_for_label }}">{{ form.ip_inicio.label }}</label>
+                            {{ form.ip_inicio }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.ip_fin.id_for_label }}">{{ form.ip_fin.label }}</label>
+                            {{ form.ip_fin }}
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ form.uso_red.id_for_label }}">{{ form.uso_red.label }}</label>
+                            {{ form.uso_red }}
+                        </div>
+                        
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Guardar

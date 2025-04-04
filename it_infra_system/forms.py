@@ -54,15 +54,16 @@ class PuestoForm(forms.ModelForm):
 class VLANForm(forms.ModelForm):
     class Meta:
         model = VLAN
-        fields = ['numero_vlan', 'segmento_vlan', 'barra_vlan', 'uso_red', 'cloud', 'ambiente', 'proyecto']
+        fields = ['numero_vlan', 'segmento_vlan', 'barra_vlan', 'cloud', 'ambiente', 'uso_red', 'proyecto', 'red']
         labels = {
             'numero_vlan': 'Número de VLAN',
             'segmento_vlan': 'Segmento de VLAN',
             'barra_vlan': 'Barra de VLAN',
-            'uso_red': 'Uso de Red',
             'cloud': 'Cloud',
             'ambiente': 'Ambiente',
-            'proyecto': 'Proyecto'
+            'uso_red': 'Uso de Red',
+            'proyecto': 'Proyecto',
+            'red': 'Red'
         }
         widgets = {
             'numero_vlan': forms.NumberInput(attrs={
@@ -77,19 +78,20 @@ class VLANForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ingrese la máscara (0-32)'
             }),
-            'uso_red': forms.Select(attrs={
-                'class': 'form-control'
-            }),
             'cloud': forms.Select(attrs={
                 'class': 'form-control'
             }),
             'ambiente': forms.Select(attrs={
                 'class': 'form-control'
             }),
+            'uso_red': forms.Select(attrs={
+                'class': 'form-control'
+            }),
             'proyecto': forms.Select(attrs={
                 'class': 'form-control',
                 'style': 'display: none;'
-            })
+            }),
+            'red': forms.Select(attrs={'class': 'form-control'})
         }
 
     def __init__(self, *args, **kwargs):
@@ -157,17 +159,27 @@ class PaisForm(forms.ModelForm):
             'abreviatura_pais': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese la abreviatura (ej: ESP, USA)'}),
         }
 
-class RedForm(forms.ModelForm):
+class REDForm(forms.ModelForm):
     class Meta:
         model = RED
-        fields = ['nombre_red', 'descripcion_red']
+        fields = ['nombre_red', 'descripcion_red', 'segmento_red', 'barra_red', 'ip_inicio', 'ip_fin', 'uso_red']
         labels = {
             'nombre_red': 'Nombre de la Red',
-            'descripcion_red': 'Descripción'
+            'descripcion_red': 'Descripción de la Red',
+            'segmento_red': 'Segmento de Red',
+            'barra_red': 'Barra de Red',
+            'ip_inicio': 'IP Inicio',
+            'ip_fin': 'IP Fin',
+            'uso_red': 'Uso de Red'
         }
         widgets = {
-            'nombre_red': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el nombre de la red'}),
-            'descripcion_red': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese la descripción de la red', 'rows': 3}),
+            'nombre_red': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion_red': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'segmento_red': forms.TextInput(attrs={'class': 'form-control'}),
+            'barra_red': forms.NumberInput(attrs={'class': 'form-control'}),
+            'ip_inicio': forms.TextInput(attrs={'class': 'form-control'}),
+            'ip_fin': forms.TextInput(attrs={'class': 'form-control'}),
+            'uso_red': forms.Select(attrs={'class': 'form-control'})
         }
 
 class UsoRedForm(forms.ModelForm):

@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     const selectedText = usoRedSelect.options[usoRedSelect.selectedIndex].text;
                     console.log('Texto seleccionado:', selectedText);
-                    if (selectedText.toLowerCase().includes('proyecto especifico')) {
+                    if (selectedText.toLowerCase() !== 'común') {
                         console.log('Mostrando contenedor de proyecto');
                         proyectoContainer.style.display = 'block';
                         proyectoSelect.style.display = 'block';
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     usoRedSelect.addEventListener('change', function() {
         const selectedText = this.options[this.selectedIndex].text;
-        if (selectedText.toLowerCase().includes('proyecto especifico')) {
+        if (selectedText.toLowerCase() !== 'común') {
             loadProyectos(this.value);
         } else {
             proyectoContainer.style.display = 'none';
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (usoRedSelect.value) {
         const selectedText = usoRedSelect.options[usoRedSelect.selectedIndex].text;
-        if (selectedText.toLowerCase().includes('proyecto especifico')) {
+        if (selectedText.toLowerCase() !== 'común') {
             loadProyectos(usoRedSelect.value);
         }
     }
