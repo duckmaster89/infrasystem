@@ -95,4 +95,10 @@ urlpatterns = [
     path('list/cpus/', views.list_cpus, name='list_cpus'),
     path('edit/cpu/<int:cpu_id>/', views.edit_cpu, name='edit_cpu'),
     path('delete/cpu/<int:cpu_id>/', views.delete_cpu, name='delete_cpu'),
+
+    # URLs para VTI
+    path('vtis/', views.list_vtis, name='list_vtis'),
+    path('vtis/create/', views.create_vti, name='create_vti'),
+    path('vtis/<int:vti_id>/edit/', views.edit_vti, name='edit_vti'),
+    path('vtis/<int:vti_id>/delete/', views.delete_vti, name='delete_vti'),
 ] 

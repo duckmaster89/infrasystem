@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import AMBIENTE, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, Perfil, User, PAIS, RED, USO_RED, CPU
+from .models import AMBIENTE, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, Perfil, User, PAIS, RED, USO_RED, CPU, VTI
 from django import forms
 
 
@@ -207,4 +207,19 @@ class CPUForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ingrese el número de cores'
             })
+        }
+
+class VTIForm(forms.ModelForm):
+    class Meta:
+        model = VTI
+        fields = ['nombre_vti', 'siglas', 'descripcion']
+        widgets = {
+            'nombre_vti': forms.TextInput(attrs={'class': 'form-control'}),
+            'siglas': forms.TextInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+        labels = {
+            'nombre_vti': 'Nombre',
+            'siglas': 'Siglas',
+            'descripcion': 'Descripción'
         }

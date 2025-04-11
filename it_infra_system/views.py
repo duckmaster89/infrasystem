@@ -6,8 +6,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
-from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, REDForm, UsoRedForm, CPUForm
-from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED, CONTROL_VLAN, VLAN_IP, CPU
+from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, REDForm, UsoRedForm, CPUForm, VTIForm
+from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED, CONTROL_VLAN, VLAN_IP, CPU, VTI
 from django.contrib import messages
 from .decorators import custom_login_required
 from django.http import JsonResponse
@@ -1864,3 +1864,105 @@ def delete_cpu(request, cpu_id):
         )
         cpu.delete()
         return redirect('list_cpus')
+
+@custom_login_required
+def create_vti(request):
+    if request.method == 'GET':
+        return render(request, 'create_vti.html', {
+            'form': VTIForm()
+        })
+    else:
+        try:
+            form = VTIForm(request.POST)
+            if form.is_valid():
+                nueva_vti = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(VTI.objects.values_list('vti_id', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nueva_vti.vti_id = id_nuevo
+                nueva_vti.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'VTI',
+                    f'Creación de VTI ID: {nueva_vti.vti_id} - {nueva_vti.nombre_vti}'
+                )
+                
+                return redirect('list_vtis')
+            else:
+                return render(request, 'create_vti.html', {
+                    'form': form,
+                    'error': 'Por favor proporcione datos válidos'
+                })
+        except ValueError:
+            return render(request, 'create_vti.html', {
+                'form': VTIForm(),
+                'error': 'Por favor proporcione datos válidos'
+            })
+
+@custom_login_required
+def list_vtis(request):
+    vtis = VTI.objects.all().order_by('vti_id')
+    return render(request, 'list_vtis.html', {
+        'vtis': vtis
+    })
+
+@custom_login_required
+def edit_vti(request, vti_id):
+    vti = get_object_or_404(VTI, vti_id=vti_id)
+    if request.method == 'GET':
+        form = VTIForm(instance=vti)
+        return render(request, 'edit_vti.html', {
+            'vti': vti,
+            'form': form
+        })
+    else:
+        try:
+            form = VTIForm(request.POST, instance=vti)
+            if form.is_valid():
+                form.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'UPDATE',
+                    'VTI',
+                    f'Actualización de VTI ID: {vti.vti_id} - {vti.nombre_vti}'
+                )
+                
+                return redirect('list_vtis')
+            else:
+                return render(request, 'edit_vti.html', {
+                    'vti': vti,
+                    'form': form,
+                    'error': 'Por favor proporcione datos válidos'
+                })
+        except ValueError:
+            return render(request, 'edit_vti.html', {
+                'vti': vti,
+                'form': VTIForm(instance=vti),
+                'error': 'Por favor proporcione datos válidos'
+            })
+
+@custom_login_required
+def delete_vti(request, vti_id):
+    vti = get_object_or_404(VTI, vti_id=vti_id)
+    if request.method == 'POST':
+        # Registrar en bitácora antes de eliminar
+        registrar_evento(
+            request.user,
+            'DELETE',
+            'VTI',
+            f'Eliminación de VTI ID: {vti.vti_id} - {vti.nombre_vti}'
+        )
+        vti.delete()
+        return redirect('list_vtis')
+    return render(request, 'delete_vti.html', {
+        'vti': vti
+    })

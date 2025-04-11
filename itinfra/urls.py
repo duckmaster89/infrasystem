@@ -108,6 +108,18 @@ urlpatterns = [
     path('edit/uso_red/<int:uso_id>/', views.edit_uso_red, name='edit_uso_red'),
     path('delete/uso_red/<int:uso_id>/', views.delete_uso_red, name='delete_uso_red'),
 
+    # URLs para CPU
+    path('create/cpu/', views.create_cpu, name='create_cpu'),
+    path('list/cpus/', views.list_cpus, name='list_cpus'),
+    path('edit/cpu/<int:cpu_id>/', views.edit_cpu, name='edit_cpu'),
+    path('delete/cpu/<int:cpu_id>/', views.delete_cpu, name='delete_cpu'),
+    
+    # URLs para VTI (Variables de Datos)
+    path('create/vti/', views.create_vti, name='create_vti'),
+    path('list/vtis/', views.list_vtis, name='list_vtis'),
+    path('edit/vti/<int:vti_id>/', views.edit_vti, name='edit_vti'),
+    path('delete/vti/<int:vti_id>/', views.delete_vti, name='delete_vti'),
+
     path('get_redes_by_uso_red/<int:uso_red_id>/', views.get_redes_by_uso_red, name='get_redes_by_uso_red'),
 
     path('list/control_vlans/', views.list_control_vlans, name='list_control_vlans'),

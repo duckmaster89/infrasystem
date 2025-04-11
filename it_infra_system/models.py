@@ -293,3 +293,19 @@ class CPU(models.Model):
 
     def __str__(self):
         return f"CPU {self.cpu_id} - {self.core_cpu} cores"      
+
+class VTI(models.Model):
+    vti_id = models.AutoField(primary_key=True)
+    nombre_vti = models.CharField(max_length=100)
+    siglas = models.CharField(max_length=10, blank=True)
+    descripcion = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    user_create = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+
+    class Meta:
+        verbose_name = 'VTI'
+        verbose_name_plural = 'VTIs'
+        ordering = ['vti_id']
+
+    def __str__(self):
+        return f"{self.nombre_vti} ({self.siglas})"      
