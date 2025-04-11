@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import AMBIENTE, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, Perfil, User, PAIS, RED, USO_RED
+from .models import AMBIENTE, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, Perfil, User, PAIS, RED, USO_RED, CPU
 from django import forms
 
 
@@ -193,4 +193,18 @@ class UsoRedForm(forms.ModelForm):
         widgets = {
             'nombre_uso': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ingrese el nombre del uso'}),
             'descripcion_uso': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Ingrese la descripción del uso', 'rows': 3}),
+        }
+
+class CPUForm(forms.ModelForm):
+    class Meta:
+        model = CPU
+        fields = ['core_cpu']
+        labels = {
+            'core_cpu': 'Número de Cores'
+        }
+        widgets = {
+            'core_cpu': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ingrese el número de cores'
+            })
         }

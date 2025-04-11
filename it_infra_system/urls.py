@@ -89,4 +89,10 @@ urlpatterns = [
     path('edit/uso_red/<int:uso_id>/', views.edit_uso_red, name='edit_uso_red'),
     path('delete/uso_red/<int:uso_id>/', views.delete_uso_red, name='delete_uso_red'),
     path('usos-red/get-proyectos/<int:uso_red_id>/', views.get_proyectos_by_uso_red, name='get_proyectos_by_uso_red'),
+
+    # URLs para CPU
+    path('create/cpu/', views.create_cpu, name='create_cpu'),
+    path('list/cpus/', views.list_cpus, name='list_cpus'),
+    path('edit/cpu/<int:cpu_id>/', views.edit_cpu, name='edit_cpu'),
+    path('delete/cpu/<int:cpu_id>/', views.delete_cpu, name='delete_cpu'),
 ] 

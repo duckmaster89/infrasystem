@@ -281,3 +281,15 @@ class VLAN_IP(models.Model):
 
     def __str__(self):
         return f"{self.ip} - {self.vlan.numero_vlan}"      
+
+class CPU(models.Model):
+    cpu_id = models.AutoField(primary_key=True)
+    core_cpu = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'CPU'
+        verbose_name = 'CPU'
+        verbose_name_plural = 'CPUs'
+
+    def __str__(self):
+        return f"CPU {self.cpu_id} - {self.core_cpu} cores"      

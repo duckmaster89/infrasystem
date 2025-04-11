@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h1 class="text-center mb-0">Lista de CPUs</h1>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cores</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cpu in list_cpus %}
+                                <tr>
+                                    <td>{{ cpu.cpu_id }}</td>
+                                    <td>{{ cpu.core_cpu }}</td>
+                                    <td>
+                                        <a href="{% url 'edit_cpu' cpu.cpu_id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </a>
+                                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ cpu.cpu_id }})">
+                                            <i class="fas fa-trash"></i> Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'submenu_listar' %}" class="btn btn-secondary">Volver</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="POST" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<script>
+function confirmDelete(cpuId) {
+    if (confirm('¿Estás seguro de que deseas eliminar esta CPU?')) {
+        const form = document.getElementById('deleteForm');
+        form.action = `/delete/cpu/${cpuId}/`;
+        form.submit();
+    }
+}
+</script>
+{% endblock %} 

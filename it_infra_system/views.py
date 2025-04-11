@@ -6,8 +6,8 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
-from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, REDForm, UsoRedForm
-from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED, CONTROL_VLAN, VLAN_IP
+from .forms import AmbienteForm, SolicitanteForm, GerenciaForm, PuestoForm, VLANForm, ProyectoForm, StatusProyectoForm, PaisForm, REDForm, UsoRedForm, CPUForm
+from .models import AMBIENTE, Bitacora, Perfil, UsuarioExtendido, CLOUD, SOLICITANTE, GERENCIA, PUESTO, VLAN, PROYECTO, STATUS_PROYECTO, PAIS, RED, USO_RED, CONTROL_VLAN, VLAN_IP, CPU
 from django.contrib import messages
 from .decorators import custom_login_required
 from django.http import JsonResponse
@@ -1764,3 +1764,103 @@ def list_control_vlans(request):
             'proyecto': proyecto
         }
     })
+
+@custom_login_required
+def create_cpu(request):
+    if request.method == 'GET':
+        return render(request, 'create_cpu.html', {
+            'form': CPUForm()
+        })
+    else:
+        try:
+            form = CPUForm(request.POST)
+            if form.is_valid():
+                nueva_cpu = form.save(commit=False)
+                
+                # Encontrar el ID más pequeño disponible
+                ids_existentes = set(CPU.objects.values_list('cpu_id', flat=True))
+                id_nuevo = 1
+                while id_nuevo in ids_existentes:
+                    id_nuevo += 1
+                
+                nueva_cpu.cpu_id = id_nuevo
+                nueva_cpu.save()
+                
+                # Registrar en bitácora
+                registrar_evento(
+                    request.user,
+                    'CREATE',
+                    'CPU',
+                    f'Creación de CPU ID: {nueva_cpu.cpu_id} con {nueva_cpu.core_cpu} cores'
+                )
+                
+                return redirect('list_cpus')
+            else:
+                return render(request, 'create_cpu.html', {
+                    'form': form,
+                    'error': 'Por favor proporcione datos válidos'
+                })
+        except ValueError:
+            return render(request, 'create_cpu.html', {
+                'form': CPUForm(),
+                'error': 'Por favor proporcione datos válidos'
+            })
+
+@custom_login_required
+def list_cpus(request):
+    cpus = CPU.objects.all()
+    
+    # Registrar en bitácora
+    registrar_evento(
+        request.user,
+        'VIEW',
+        'CPU',
+        'Visualización de lista de CPUs'
+    )
+    
+    return render(request, 'list_cpus.html', {'list_cpus': cpus})
+
+@custom_login_required
+def edit_cpu(request, cpu_id):
+    cpu = get_object_or_404(CPU, cpu_id=cpu_id)
+
+    if request.method == 'GET':
+        form = CPUForm(instance=cpu)
+        return render(request, 'edit_cpu.html', {
+            'form': form,
+            'cpu': cpu
+        })
+    else:
+        try:
+            form = CPUForm(request.POST, instance=cpu)
+            form.save()
+            
+            # Registrar en bitácora
+            registrar_evento(
+                request.user,
+                'UPDATE',
+                'CPU',
+                f'Actualización de CPU ID: {cpu.cpu_id}'
+            )
+            
+            return redirect('list_cpus')
+        except ValueError:
+            return render(request, 'edit_cpu.html', {
+                'form': form,
+                'cpu': cpu,
+                'error': 'Error actualizando la CPU'
+            })
+
+@custom_login_required
+def delete_cpu(request, cpu_id):
+    cpu = get_object_or_404(CPU, cpu_id=cpu_id)
+    if request.method == 'POST':
+        # Registrar en bitácora
+        registrar_evento(
+            request.user,
+            'DELETE',
+            'CPU',
+            f'Eliminación de CPU ID: {cpu.cpu_id}'
+        )
+        cpu.delete()
+        return redirect('list_cpus')
