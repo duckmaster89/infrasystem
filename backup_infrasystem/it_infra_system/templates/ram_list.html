@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="header-actions">
+        <h2>Lista de RAMs</h2>
+        <a href="{% url 'create_ram' %}" class="btn btn-primary">Crear Nueva RAM</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cantidad (GB)</th>
+                    <th>VTI</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ram in rams %}
+                <tr>
+                    <td>{{ ram.ram_id }}</td>
+                    <td>{{ ram.cantidad }}</td>
+                    <td>{{ ram.vti }}</td>
+                    <td>
+                        <a href="{% url 'edit_ram' ram.ram_id %}" class="btn btn-sm btn-info">Editar</a>
+                        <form method="POST" action="{% url 'delete_ram' ram.ram_id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro que desea eliminar esta RAM?')">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No hay RAMs registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

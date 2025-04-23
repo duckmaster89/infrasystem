@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --claro-red: #E20A17;
+        --claro-gray: #333333;
+        --claro-light-gray: #F8F9FA;
+        --claro-border: #E5E5E5;
+    }
+    
+    .container {
+        max-width: 1200px;
+    }
+    
+    h1 {
+        color: var(--claro-red);
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .table {
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .table thead th {
+        background-color: var(--claro-red);
+        color: white;
+        border: none;
+        padding: 1rem;
+        font-weight: 600;
+    }
+    
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--claro-border);
+    }
+    
+    .table tbody tr:hover {
+        background-color: var(--claro-light-gray);
+    }
+    
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+    }
+
+    #loadingIndicator {
+        display: none;
+        text-align: center;
+        padding: 10px;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1><i class="fas fa-list"></i> Controles de VLAN</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3" id="filterForm">
+                <div class="col-md-3">
+                    <label for="nombre_tabla" class="form-label">No. VLAN</label>
+                    <input type="text" class="form-control" id="nombre_tabla" name="nombre_tabla" value="{{ filtros.nombre_tabla }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="uso_red" class="form-label">Uso de Red</label>
+                    <select class="form-select" id="uso_red" name="uso_red">
+                        <option value="">Todos</option>
+                        {% for uso in usos_red %}
+                            <option value="{{ uso.nombre_uso }}" {% if filtros.uso_red == uso.nombre_uso %}selected{% endif %}>
+                                {{ uso.nombre_uso }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="proyecto" class="form-label">Proyecto</label>
+                    <input type="text" class="form-control" id="proyecto" name="proyecto" value="{{ filtros.proyecto }}">
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'list_control_vlans' %}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="loadingIndicator">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <div class="table-responsive" id="tableContainer">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre de Tabla</th>
+                    <th>Uso de Red</th>
+                    <th>Proyecto</th>
+                    <th>Rango de IPs Disponibles</th>
+                    <th>Fecha de Creación</th>
+                    <th>Creado por</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for control in control_vlans %}
+                <tr>
+                    <td>{{ control.nombre_tabla_vlan }}</td>
+                    <td>{{ control.uso_red.nombre_uso }}</td>
+                    <td>{{ control.proyecto.nombre_proyecto }}</td>
+                    <td>{{ control.rango_ips_disponibles }}</td>
+                    <td>{{ control.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>{{ control.user_create.username }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay controles de VLAN registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterInputs = document.querySelectorAll('#filterForm input, #filterForm select');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const tableContainer = document.getElementById('tableContainer');
+    
+    function applyFilters() {
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData);
+        
+        // Mostrar indicador de carga
+        loadingIndicator.style.display = 'block';
+        tableContainer.style.opacity = '0.5';
+        
+        // Hacer la petición AJAX
+        fetch(window.location.pathname + '?' + params.toString())
+            .then(response => response.text())
+            .then(html => {
+                // Crear un elemento temporal para parsear el HTML
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Extraer solo la tabla del HTML recibido
+                const newTable = temp.querySelector('#tableContainer');
+                
+                // Reemplazar la tabla actual
+                tableContainer.innerHTML = newTable.innerHTML;
+                
+                // Ocultar indicador de carga
+                loadingIndicator.style.display = 'none';
+                tableContainer.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                loadingIndicator.style.display = 'none';
+                tableContainer.style.opacity = '1';
+            });
+    }
+    
+    filterInputs.forEach(input => {
+        input.addEventListener('change', applyFilters);
+        if (input.type === 'text') {
+            let timeout;
+            input.addEventListener('input', function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(applyFilters, 500);
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

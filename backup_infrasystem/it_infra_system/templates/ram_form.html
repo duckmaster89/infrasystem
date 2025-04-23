@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h2>{% if ram %}Editar{% else %}Crear{% endif %} RAM</h2>
+        <form method="post" class="form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.cantidad.id_for_label }}">Cantidad (GB)</label>
+                {{ form.cantidad }}
+                {% if form.cantidad.errors %}
+                    <div class="error-message">{{ form.cantidad.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.vti.id_for_label }}">VTI</label>
+                {{ form.vti }}
+                {% if form.vti.errors %}
+                    <div class="error-message">{{ form.vti.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+                <a href="{% url 'list_rams' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

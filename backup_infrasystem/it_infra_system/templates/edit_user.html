@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="edit-container">
+    <h1 class="edit-title">Editar Usuario</h1>
+
+    {% if error %}
+    <div class="error-message">
+        {{error}}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="edit-form">
+        {% csrf_token %}
+        <div class="form-fields">
+            <div class="form-group">
+                <label for="username">Nombre de Usuario</label>
+                <input type="text" name="username" id="username" value="{{user.username}}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="first_name">Nombre</label>
+                <input type="text" name="first_name" id="first_name" value="{{user.first_name}}">
+            </div>
+
+            <div class="form-group">
+                <label for="last_name">Apellido</label>
+                <input type="text" name="last_name" id="last_name" value="{{user.last_name}}">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" value="{{user.email}}">
+            </div>
+
+            {% if es_administrador %}
+            <div class="form-group">
+                <label for="perfiles">Perfiles</label>
+                <select name="perfiles" id="perfiles" class="form-select" multiple>
+                    {% for perfil in perfiles %}
+                    <option value="{{perfil.id_perfil}}" {% if perfil in perfiles_actuales %}selected{% endif %}>
+                        {{perfil.nombre_perfil}}
+                    </option>
+                    {% endfor %}
+                </select>
+                <small class="form-text text-muted">Mantenga presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples perfiles</small>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="password">Nueva Contraseña (dejar en blanco para mantener la actual)</label>
+                <input type="password" name="password" id="password">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn submit-btn">
+                <i class="fas fa-save"></i>
+                Guardar Cambios
+            </button>
+            <a href="/list/users" class="btn cancel-btn">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .edit-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .edit-title {
+        color: #E30613;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-fields {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: #E30613;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.2);
+    }
+
+    .form-select[multiple] {
+        height: 150px;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .submit-btn {
+        background-color: #E30613;
+        color: white;
+    }
+
+    .submit-btn:hover {
+        background-color: #c70512;
+    }
+
+    .cancel-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .cancel-btn:hover {
+        background-color: #5a6268;
+    }
+
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %} 

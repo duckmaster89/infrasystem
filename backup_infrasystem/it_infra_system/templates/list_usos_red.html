@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Lista de Usos de Red</h3>
+                    <a href="{% url 'create_uso_red' %}" class="btn btn-light">
+                        <i class="fas fa-plus"></i> Nuevo Uso de Red
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Creado por</th>
+                                    <th>Fecha de Creación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for uso in usos %}
+                                    <tr>
+                                        <td>{{ uso.id_uso_red }}</td>
+                                        <td>{{ uso.nombre_uso }}</td>
+                                        <td>{{ uso.descripcion_uso }}</td>
+                                        <td>{{ uso.user_create.username }}</td>
+                                        <td>{{ uso.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_uso_red' uso.id_uso_red %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'delete_uso_red' uso.id_uso_red %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar este uso de red?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">No hay usos de red registrados</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <a href="{% url 'submenu_listar' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .card-header {
+        background-color: var(--claro-red) !important;
+    }
+    
+    .btn-primary {
+        background-color: var(--claro-red);
+        border-color: var(--claro-red);
+    }
+    
+    .btn-primary:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+    
+    .table th {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %} 

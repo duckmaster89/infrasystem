@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Estado de Proyecto</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.nombre_status.id_for_label }}">{{ form.nombre_status.label }}</label>
+            {{ form.nombre_status }}
+            {% if form.nombre_status.errors %}
+            <div class="alert alert-danger">
+                {{ form.nombre_status.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.descripcion_status.id_for_label }}">{{ form.descripcion_status.label }}</label>
+            {{ form.descripcion_status }}
+            {% if form.descripcion_status.errors %}
+            <div class="alert alert-danger">
+                {{ form.descripcion_status.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'list_status_proyectos' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

@@ -120,7 +120,19 @@ urlpatterns = [
     path('edit/vti/<int:vti_id>/', views.edit_vti, name='edit_vti'),
     path('delete/vti/<int:vti_id>/', views.delete_vti, name='delete_vti'),
 
+    # URLs para RAM
+    path('create/ram/', views.create_ram, name='create_ram'),
+    path('list/rams/', views.list_rams, name='list_rams'),
+    path('edit/ram/<int:ram_id>/', views.edit_ram, name='edit_ram'),
+    path('delete/ram/<int:ram_id>/', views.delete_ram, name='delete_ram'),
+
     path('get_redes_by_uso_red/<int:uso_red_id>/', views.get_redes_by_uso_red, name='get_redes_by_uso_red'),
+
+    # URLs para estados de equipo
+    path('create/status-equipo/', views.create_status_equipo, name='create_status_equipo'),
+    path('list/status-equipo/', views.list_status_equipo, name='list_status_equipo'),
+    path('edit/status-equipo/<int:statuse_id>/', views.edit_status_equipo, name='edit_status_equipo'),
+    path('delete/status-equipo/<int:statuse_id>/', views.delete_status_equipo, name='delete_status_equipo'),
 
     path('list/control_vlans/', views.list_control_vlans, name='list_control_vlans'),
 ]

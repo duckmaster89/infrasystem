@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header" style="background-color: #ffc107;">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-edit"></i> Editar VTI
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="nombre_vti" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre_vti" name="nombre_vti" 
+                                   value="{{ form.nombre_vti.value|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="siglas" class="form-label">Siglas</label>
+                            <input type="text" class="form-control" id="siglas" name="siglas" 
+                                   value="{{ form.siglas.value|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" 
+                                    rows="4">{{ form.descripcion.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <a href="{% url 'list_vtis' %}" class="btn btn-secondary me-2" style="min-width: 150px;">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning" style="min-width: 150px; background-color: #ffc107; border-color: #ffc107; color: white;">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

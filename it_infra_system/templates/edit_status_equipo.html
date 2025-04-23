@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Editar Estado de Equipo</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.nombre_statuse.id_for_label }}">{{ form.nombre_statuse.label }}</label>
+                            {{ form.nombre_statuse }}
+                            {% if form.nombre_statuse.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.nombre_statuse.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.descripcion_statuse.id_for_label }}">{{ form.descripcion_statuse.label }}</label>
+                            {{ form.descripcion_statuse }}
+                            {% if form.descripcion_statuse.errors %}
+                            <div class="alert alert-danger">
+                                {{ form.descripcion_statuse.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            <a href="{% url 'list_status_equipo' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

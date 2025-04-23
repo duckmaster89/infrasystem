@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="list-container">
+    <h1 class="list-title">Lista de Usuarios</h1>
+
+    {% if error %}
+    <div class="error-message">
+        {{error}}
+    </div>
+    {% endif %}
+
+    {% if usuarios_info %}
+    <div class="grid-container">
+        {% for info in usuarios_info %}
+        <div class="user-card">
+            <div class="user-header">
+                <h2 class="user-title">{{info.user.username}}</h2>
+            </div>
+            
+            <div class="user-info">
+                <div class="item-body">
+                    <p class="email">{{info.user.email|default:"No email"}}</p>
+                    <p class="name">{{info.user.first_name}} {{info.user.last_name}}</p>
+                    <p class="profiles">
+                        <strong>Perfiles:</strong><br>
+                        {{info.perfiles}}
+                    </p>
+                </div>
+                <p><strong>Fecha de registro:</strong> {{info.user.date_joined|date:"d/m/Y"}}</p>
+                <p><strong>Estado:</strong> {% if info.user.is_active %}Activo{% else %}Inactivo{% endif %}</p>
+                {% if info.ultima_modificacion %}
+                <p class="last-modified">
+                    <strong>Última modificación:</strong><br>
+                    Por: {{info.ultima_modificacion.usuario.username}}<br>
+                    Acción: {{info.ultima_modificacion.get_tipo_accion_display}}<br>
+                    Fecha: {{info.ultima_modificacion.fecha_hora|date:"d/m/Y H:i"}}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                {% if info.can_edit %}
+                <a href="/edit/user/{{info.user.id}}" class="btn edit-btn">
+                    <i class="fas fa-edit"></i>
+                    Editar
+                </a>
+                {% if es_administrador and not info.user.is_superuser %}
+                <a href="/delete/user/{{info.user.id}}" class="btn delete-btn" onclick="return confirm('¿Está seguro de que desea eliminar este usuario?');">
+                    <i class="fas fa-trash-alt"></i>
+                    Eliminar
+                </a>
+                {% endif %}
+                {% if info.user == current_user %}
+                <span class="current-user-label">Usuario actual</span>
+                {% endif %}
+                {% else %}
+                <span class="no-permission-label">Sin permisos de edición</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-data-message">
+        No hay usuarios para mostrar.
+    </div>
+    {% endif %}
+
+    <div class="action-bar">
+        {% if es_administrador %}
+        <a href="/create/user" class="btn create-btn">
+            <i class="fas fa-user-plus"></i>
+            Crear Usuario
+        </a>
+        {% endif %}
+        <a href="/submenu_listar" class="btn back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Volver
+        </a>
+    </div>
+</div>
+
+<style>
+    .list-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .list-title {
+        color: #E30613;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .user-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .user-header {
+        background-color: #E30613;
+        color: white;
+        padding: 1rem;
+    }
+
+    .user-title {
+        margin: 0;
+        font-size: 1.25rem;
+    }
+
+    .user-info {
+        padding: 1.5rem;
+    }
+
+    .item-body {
+        margin-bottom: 1rem;
+    }
+
+    .email {
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+
+    .name {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .profiles {
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .last-modified {
+        font-size: 0.875rem;
+        color: #666;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .action-buttons {
+        padding: 1rem;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .edit-btn {
+        background-color: #E30613;
+        color: white;
+    }
+
+    .edit-btn:hover {
+        background-color: #c70512;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background-color: #c82333;
+    }
+
+    .action-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .create-btn {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .create-btn:hover {
+        background-color: #218838;
+    }
+
+    .back-btn {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .back-btn:hover {
+        background-color: #5a6268;
+    }
+
+    .current-user-label {
+        background-color: #e9ecef;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        color: #495057;
+    }
+
+    .no-permission-label {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .error-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .no-data-message {
+        text-align: center;
+        padding: 2rem;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        color: #6c757d;
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %} 

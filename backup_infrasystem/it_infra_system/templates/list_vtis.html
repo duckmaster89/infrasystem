@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-network-wired"></i> Lista de VTIs
+    </h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="text-end mb-3">
+        <a href="{% url 'create_vti' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Crear Nueva VTI
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Siglas</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vti in vtis %}
+                <tr>
+                    <td>{{ vti.vti_id }}</td>
+                    <td>{{ vti.nombre_vti }}</td>
+                    <td>{{ vti.siglas }}</td>
+                    <td>{{ vti.descripcion }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'edit_vti' vti.vti_id %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <a href="{% url 'delete_vti' vti.vti_id %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">No hay VTIs registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+    }
+
+    .btn-group {
+        gap: 0.5rem;
+    }
+
+    .table th {
+        background-color: var(--claro-red);
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(226, 10, 22, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>
+{% endblock %} 

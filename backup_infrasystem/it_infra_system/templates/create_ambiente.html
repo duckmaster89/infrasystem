@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="create-container">
+    <h1 class="create-title">Crear Nuevo Ambiente</h1>
+
+    {% if error %}
+    <div class="error-message">
+        {{error}}
+    </div>
+    {% endif %}
+
+    <form action="/create/ambiente/" method="POST" class="create-form">
+        {% csrf_token %}
+        <div class="form-fields">
+            {{form.as_p}}
+        </div>
+        <div class="button-group">
+            <button type="submit" class="btn submit-btn">
+                <i class="fas fa-save"></i>
+                Guardar Ambiente
+            </button>
+            <a href="/submenu_crear" class="btn cancel-btn">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .create-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .create-title {
+        color: var(--claro-red);
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+
+    .create-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        background-color: var(--white);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid #eee;
+    }
+
+    .form-fields {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .create-form p {
+        margin: 0;
+    }
+
+    .create-form label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--dark-gray);
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .create-form input,
+    .create-form select,
+    .create-form textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .create-form input:focus,
+    .create-form select:focus,
+    .create-form textarea:focus {
+        outline: none;
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 2px rgba(226, 10, 22, 0.1);
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .submit-btn,
+    .cancel-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .submit-btn {
+        background-color: var(--claro-red);
+    }
+
+    .submit-btn:hover {
+        background-color: var(--claro-dark-red);
+    }
+
+    .cancel-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .cancel-btn:hover {
+        background-color: #555;
+    }
+
+    .error-message {
+        background-color: #fff2f2;
+        border: 1px solid #ffdbdb;
+        color: var(--claro-red);
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    /* Estilos para campos específicos del formulario */
+    .create-form select {
+        background-color: white;
+        cursor: pointer;
+    }
+
+    .create-form textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    @media (max-width: 768px) {
+        .create-container {
+            padding: 1rem;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+        .create-form {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<!-- Agregar Font Awesome para los iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

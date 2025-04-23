@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Proyecto</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" class="mt-4">
+        {% csrf_token %}
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.nombre_proyecto.id_for_label }}">{{ form.nombre_proyecto.label }}</label>
+            {{ form.nombre_proyecto }}
+            {% if form.nombre_proyecto.errors %}
+            <div class="alert alert-danger">
+                {{ form.nombre_proyecto.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_solicitud.id_for_label }}">{{ form.fecha_solicitud.label }}</label>
+            {{ form.fecha_solicitud }}
+            {% if form.fecha_solicitud.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_solicitud.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_asignacion.id_for_label }}">{{ form.fecha_asignacion.label }}</label>
+            {{ form.fecha_asignacion }}
+            {% if form.fecha_asignacion.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_asignacion.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_deploy.id_for_label }}">{{ form.fecha_deploy.label }}</label>
+            {{ form.fecha_deploy }}
+            {% if form.fecha_deploy.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_deploy.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_compromiso_entrega.id_for_label }}">{{ form.fecha_compromiso_entrega.label }}</label>
+            {{ form.fecha_compromiso_entrega }}
+            {% if form.fecha_compromiso_entrega.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_compromiso_entrega.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_solicitud_blackhole.id_for_label }}">{{ form.fecha_solicitud_blackhole.label }}</label>
+            {{ form.fecha_solicitud_blackhole }}
+            {% if form.fecha_solicitud_blackhole.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_solicitud_blackhole.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="{{ form.fecha_real_entrega.id_for_label }}">{{ form.fecha_real_entrega.label }}</label>
+            {{ form.fecha_real_entrega }}
+            {% if form.fecha_real_entrega.errors %}
+            <div class="alert alert-danger">
+                {{ form.fecha_real_entrega.errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="{% url 'list_proyectos' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

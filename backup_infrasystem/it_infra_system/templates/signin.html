@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="signin-container">
+    <div class="signin-card">
+        <div class="card-header">
+            <i class="fas fa-sign-in-alt"></i>
+            <h1>Iniciar Sesión</h1>
+        </div>
+
+        {% if error %}
+        <div class="error-message">
+            <i class="fas fa-exclamation-circle"></i>
+            {{error}}
+        </div>
+        {% endif %}
+
+        {% if messages %}
+        {% for message in messages %}
+        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="signin-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i>
+                    Usuario
+                </label>
+                <input type="text" name="username" id="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i>
+                    Contraseña
+                </label>
+                <div class="password-input">
+                    <input type="password" name="password" id="password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="signin-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Iniciar Sesión
+            </button>
+        </form>
+
+        <div class="card-footer">
+            <p>¿No tienes una cuenta?</p>
+            <a href="/signup" class="signup-link">
+                <i class="fas fa-user-plus"></i>
+                Registrarse
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .signin-container {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        padding: 2rem;
+    }
+
+    .signin-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .card-header i {
+        font-size: 4rem;
+        color: var(--claro-red);
+        margin-bottom: 1rem;
+    }
+
+    .card-header h1 {
+        color: var(--dark-gray);
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .signin-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--dark-gray);
+        font-weight: bold;
+    }
+
+    .form-group label i {
+        color: var(--claro-red);
+    }
+
+    .form-group input {
+        padding: 0.75rem;
+        border: 2px solid #eee;
+        border-radius: 6px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        border-color: var(--claro-red);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(226, 10, 22, 0.1);
+    }
+
+    .password-input {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .password-input input {
+        width: 100%;
+        padding-right: 40px;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        background: none;
+        border: none;
+        color: var(--dark-gray);
+        cursor: pointer;
+        padding: 0;
+        font-size: 1.1rem;
+    }
+
+    .toggle-password:hover {
+        color: var(--claro-red);
+    }
+
+    .signin-btn {
+        background-color: var(--claro-red);
+        color: white;
+        padding: 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .signin-btn:hover {
+        background-color: var(--claro-dark-red);
+        transform: translateY(-2px);
+    }
+
+    .error-message {
+        background-color: #fff2f2;
+        border: 1px solid #ffdbdb;
+        color: var(--claro-red);
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .message {
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .message.success {
+        background-color: #f0fff4;
+        border: 1px solid #c6f6d5;
+        color: #2f855a;
+    }
+
+    .message.error {
+        background-color: #fff2f2;
+        border: 1px solid #ffdbdb;
+        color: var(--claro-red);
+    }
+
+    .card-footer {
+        margin-top: 2rem;
+        text-align: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+
+    .card-footer p {
+        color: var(--dark-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .signup-link {
+        color: var(--claro-red);
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.3s ease;
+    }
+
+    .signup-link:hover {
+        color: var(--claro-dark-red);
+    }
+
+    @media (max-width: 768px) {
+        .signin-container {
+            padding: 1rem;
+        }
+
+        .signin-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+
+<script>
+    function togglePassword(inputId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleBtn = passwordInput.nextElementSibling.querySelector('i');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleBtn.classList.remove('fa-eye');
+            toggleBtn.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleBtn.classList.remove('fa-eye-slash');
+            toggleBtn.classList.add('fa-eye');
+        }
+    }
+</script>
+
+<!-- Agregar Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

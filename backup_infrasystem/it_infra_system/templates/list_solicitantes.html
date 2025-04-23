@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-user-tie"></i> Lista de Solicitantes
+    </h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Puesto</th>
+                    <th>Gerencia</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for solicitante in solicitantes %}
+                <tr>
+                    <td>{{ solicitante.nombre_solicitante }}</td>
+                    <td>{{ solicitante.puesto.nombre_puesto|default:solicitante.puesto_solicitante }}</td>
+                    <td>{{ solicitante.gerencia.nombre_gerencia|default:"-" }}</td>
+                    <td>{{ solicitante.email_solicitante }}</td>
+                    <td>{{ solicitante.tel_solicitante }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'edit_solicitante' solicitante.id_solicitante %}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Editar
+                            </a>
+                            <form action="{% url 'delete_solicitante' solicitante.id_solicitante %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este solicitante?')">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay solicitantes registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'create_solicitante' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Nuevo Solicitante
+        </a>
+        <a href="{% url 'submenu_listar' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+    }
+
+    .btn-group {
+        gap: 0.5rem;
+    }
+
+    .table th {
+        background-color: var(--claro-red);
+        color: white;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(226, 10, 22, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 0.25rem;
+        }
+    }
+</style>
+{% endblock %} 

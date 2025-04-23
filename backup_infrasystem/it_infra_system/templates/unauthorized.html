@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="unauthorized-container">
+    <div class="unauthorized-content">
+        <div class="icon-container">
+            <i class="fas fa-lock"></i>
+        </div>
+        <h1>Acceso Denegado</h1>
+        <p>Lo sentimos, no tienes permisos para acceder a esta sección.</p>
+        <p class="sub-text">Por favor, inicia sesión para acceder al contenido.</p>
+        <div class="action-buttons">
+            <a href="/" class="home-btn">
+                <i class="fas fa-home"></i>
+                Volver al Inicio
+            </a>
+            <a href="{% url 'signin' %}" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                Iniciar Sesión
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .unauthorized-container {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        padding: 2rem;
+    }
+
+    .unauthorized-content {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 3rem;
+        border-radius: 16px;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .icon-container {
+        width: 80px;
+        height: 80px;
+        background: var(--claro-red);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 2rem;
+    }
+
+    .icon-container i {
+        font-size: 2.5rem;
+        color: white;
+    }
+
+    h1 {
+        color: white;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .sub-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .home-btn, .login-btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .home-btn {
+        background-color: var(--dark-gray);
+    }
+
+    .login-btn {
+        background-color: var(--claro-red);
+    }
+
+    .home-btn:hover, .login-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .home-btn:hover {
+        background-color: #444;
+    }
+
+    .login-btn:hover {
+        background-color: var(--claro-dark-red);
+    }
+
+    @media (max-width: 480px) {
+        .unauthorized-container {
+            padding: 1rem;
+        }
+
+        .unauthorized-content {
+            padding: 2rem 1rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .home-btn, .login-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,400 @@
+{% extends 'it_infra_system/base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --claro-red: #E20A17;
+        --claro-gray: #333333;
+        --claro-light-gray: #F8F9FA;
+        --claro-border: #E5E5E5;
+    }
+    
+    .container {
+        max-width: 1200px;
+    }
+    
+    h1 {
+        color: var(--claro-red);
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-control {
+        border-radius: 4px;
+        border: 2px solid var(--claro-border);
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--claro-red);
+        box-shadow: 0 0 0 0.2rem rgba(226, 10, 23, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: var(--claro-red);
+        border-color: var(--claro-red);
+        border-radius: 4px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .btn-primary:hover {
+        background-color: #C20812;
+        border-color: #C20812;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+        background: white;
+    }
+    
+    .card-header {
+        background-color: var(--claro-red);
+        color: white;
+        border-radius: 8px 8px 0 0 !important;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+    }
+    
+    .badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+    }
+    
+    label {
+        font-weight: 600;
+        color: var(--claro-gray);
+        margin-bottom: 0.5rem;
+    }
+
+    .alert {
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border: none;
+    }
+
+    .alert-danger {
+        background-color: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .alert-success {
+        background-color: #D1FAE5;
+        color: #065F46;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1><i class="fas fa-network-wired"></i> Crear Nueva VLAN</h1>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" class="mb-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="{{ form.numero_vlan.id_for_label }}">{{ form.numero_vlan.label }}</label>
+                    {{ form.numero_vlan }}
+                    {% if form.numero_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.numero_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.segmento_vlan.id_for_label }}">{{ form.segmento_vlan.label }}</label>
+                    {{ form.segmento_vlan }}
+                    {% if form.segmento_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.segmento_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.barra_vlan.id_for_label }}">{{ form.barra_vlan.label }}</label>
+                    {{ form.barra_vlan }}
+                    {% if form.barra_vlan.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.barra_vlan.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.uso_red.id_for_label }}">{{ form.uso_red.label }}</label>
+                    {{ form.uso_red }}
+                    {% if form.uso_red.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.uso_red.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.cloud.id_for_label }}">{{ form.cloud.label }}</label>
+                    {{ form.cloud }}
+                    {% if form.cloud.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.cloud.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.ambiente.id_for_label }}">{{ form.ambiente.label }}</label>
+                    {{ form.ambiente }}
+                    {% if form.ambiente.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.ambiente.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3">
+                    <label for="{{ form.red.id_for_label }}">{{ form.red.label }}</label>
+                    {{ form.red }}
+                    {% if form.red.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.red.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="form-group mb-3" id="proyecto-container" style="display: none;">
+                    <label for="{{ form.proyecto.id_for_label }}">{{ form.proyecto.label }}</label>
+                    {{ form.proyecto|safe }}
+                    {% if form.proyecto.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.proyecto.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear VLAN</button>
+    </form>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Información de Red</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label for="gateway" class="form-label">Gateway:</label>
+                        <input type="text" class="form-control" id="gateway" readonly>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="mascara" class="form-label">Máscara de Red:</label>
+                        <input type="text" class="form-control" id="mascara" readonly>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="broadcast" class="form-label">Broadcast:</label>
+                        <input type="text" class="form-control" id="broadcast" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-4">
+                        <label for="ips_reservadas" class="form-label">IPs Reservadas:</label>
+                        <div class="form-control" id="ips_reservadas" style="background-color: #f8f9fa; min-height: 100px;">
+                            <div class="mb-2">
+                                <span class="badge bg-danger">HSRP1: <span id="hsrp1_ip"></span></span>
+                            </div>
+                            <div>
+                                <span class="badge bg-danger">HSRP2: <span id="hsrp2_ip"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="rango_ips" class="form-label">Rango de IPs Disponibles:</label>
+                        <textarea id="rango_ips" name="rango_ips" class="form-control" rows="3" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calcularMascara(barra) {
+    const mascaras = {
+        '8': '255.0.0.0',
+        '9': '255.128.0.0',
+        '10': '255.192.0.0',
+        '11': '255.224.0.0',
+        '12': '255.240.0.0',
+        '13': '255.248.0.0',
+        '14': '255.252.0.0',
+        '15': '255.254.0.0',
+        '16': '255.255.0.0',
+        '17': '255.255.128.0',
+        '18': '255.255.192.0',
+        '19': '255.255.224.0',
+        '20': '255.255.240.0',
+        '21': '255.255.248.0',
+        '22': '255.255.252.0',
+        '23': '255.255.254.0',
+        '24': '255.255.255.0',
+        '25': '255.255.255.128',
+        '26': '255.255.255.192',
+        '27': '255.255.255.224',
+        '28': '255.255.255.240',
+        '29': '255.255.255.248',
+        '30': '255.255.255.252',
+        '31': '255.255.255.254',
+        '32': '255.255.255.255'
+    };
+    return mascaras[barra] || '255.255.255.0';
+}
+
+function calcularRed() {
+    const segmentoVlan = document.getElementById('id_segmento_vlan').value;
+    const barraVlan = document.getElementById('id_barra_vlan').value;
+
+    if (!segmentoVlan || !barraVlan) {
+        return;
+    }
+
+    // Convertir IP a array de números
+    const ipParts = segmentoVlan.split('.').map(Number);
+    const mascara = calcularMascara(barraVlan);
+    const maskParts = mascara.split('.').map(Number);
+
+    // Mostrar la máscara de red
+    document.getElementById('mascara').value = mascara;
+
+    // Calcular gateway (primera IP usable)
+    const gateway = [...ipParts];
+    gateway[3] = ipParts[3] + 1;
+    document.getElementById('gateway').value = gateway.join('.');
+
+    // Calcular IPs HSRP (segunda y tercera IP después del gateway)
+    const hsrp1 = [...gateway];
+    hsrp1[3] = gateway[3] + 1;
+    const hsrp2 = [...hsrp1];
+    hsrp2[3] = hsrp1[3] + 1;
+
+    // Mostrar IPs reservadas HSRP
+    document.getElementById('hsrp1_ip').textContent = hsrp1.join('.');
+    document.getElementById('hsrp2_ip').textContent = hsrp2.join('.');
+
+    // Calcular broadcast
+    const broadcast = ipParts.map((part, i) => {
+        return (part | ~maskParts[i]) & 255;
+    });
+    document.getElementById('broadcast').value = broadcast.join('.');
+
+    // Calcular primera y última IP usable
+    const primeraIP = [...hsrp2];
+    primeraIP[3] = hsrp2[3] + 1; // Primera IP después de las reservadas
+    const ultimaIP = [...broadcast];
+    ultimaIP[3] = broadcast[3] - 1; // Última IP antes del broadcast
+
+    document.getElementById('rango_ips').value = 
+        `Desde: ${primeraIP.join('.')} - Hasta: ${ultimaIP.join('.')}`;
+}
+
+// Event listeners para actualizar la calculadora
+document.getElementById('id_segmento_vlan').addEventListener('input', calcularRed);
+document.getElementById('id_barra_vlan').addEventListener('input', calcularRed);
+
+// Actualizar ambiente cuando cambie el cloud
+document.getElementById('id_cloud').addEventListener('change', function() {
+    const cloudId = this.value;
+    if (cloudId) {
+        fetch(`/get_ambientes_by_cloud/${cloudId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const ambienteSelect = document.getElementById('id_ambiente');
+                ambienteSelect.innerHTML = '<option value="">---------</option>';
+                data.ambientes.forEach(ambiente => {
+                    const option = document.createElement('option');
+                    option.value = ambiente.id;
+                    option.textContent = ambiente.nombre;
+                    ambienteSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+});
+
+// Actualizar redes y proyectos cuando cambie el uso de red
+document.getElementById('id_uso_red').addEventListener('change', function() {
+    const usoRedId = this.value;
+    const proyectoContainer = document.getElementById('proyecto-container');
+    const proyectoSelect = document.getElementById('id_proyecto');
+    const selectedText = this.options[this.selectedIndex].text.trim().toLowerCase();
+    
+    console.log('Uso de Red seleccionado:', usoRedId);
+    console.log('Texto seleccionado:', selectedText);
+    
+    if (usoRedId) {
+        // Actualizar redes
+        fetch(`/get_redes_by_uso_red/${usoRedId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const redSelect = document.getElementById('id_red');
+                redSelect.innerHTML = '<option value="">---------</option>';
+                data.forEach(red => {
+                    const option = document.createElement('option');
+                    option.value = red.id;
+                    option.textContent = red.nombre;
+                    redSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+
+        // Actualizar proyectos y mostrar/ocultar el contenedor
+        if (selectedText === 'proyecto específico' || selectedText === 'proyecto especifico') {
+            fetch(`/get_proyectos_by_uso_red/${usoRedId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    proyectoSelect.innerHTML = '<option value="">---------</option>';
+                    data.proyectos.forEach(proyecto => {
+                        const option = document.createElement('option');
+                        option.value = proyecto.id;
+                        option.textContent = proyecto.nombre;
+                        proyectoSelect.appendChild(option);
+                    });
+                    proyectoContainer.style.display = 'block';
+                    proyectoSelect.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else {
+            proyectoContainer.style.display = 'none';
+            proyectoSelect.style.display = 'none';
+            proyectoSelect.value = '';
+        }
+    } else {
+        document.getElementById('id_red').innerHTML = '<option value="">---------</option>';
+        proyectoContainer.style.display = 'none';
+        proyectoSelect.style.display = 'none';
+        proyectoSelect.value = '';
+    }
+});
+</script>
+{% endblock %} 

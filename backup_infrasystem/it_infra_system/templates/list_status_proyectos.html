@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Lista de Estados de Proyecto</h2>
+        <a href="{% url 'create_status_proyecto' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Crear Nuevo Estado
+        </a>
+    </div>
+    
+    {% if status_proyectos %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in status_proyectos %}
+                <tr>
+                    <td>{{ status.id_status }}</td>
+                    <td>{{ status.nombre_status }}</td>
+                    <td>{{ status.descripcion_status }}</td>
+                    <td>
+                        <a href="{% url 'edit_status_proyecto' status.id_status %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="POST" action="{% url 'delete_status_proyecto' status.id_status %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de eliminar este estado?')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No hay estados de proyecto registrados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

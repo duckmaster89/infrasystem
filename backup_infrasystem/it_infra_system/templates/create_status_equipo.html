@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Crear Estado de Equipo</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="nombre_statuse">Nombre del Estado</label>
+                            <input type="text" class="form-control" id="nombre_statuse" name="nombre_statuse" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcion_statuse">Descripción</label>
+                            <textarea class="form-control" id="descripcion_statuse" name="descripcion_statuse" rows="3"></textarea>
+                        </div>
+                        <div class="form-group mt-3">
+                            <button type="submit" class="btn btn-primary">Crear</button>
+                            <a href="{% url 'list_status_equipo' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

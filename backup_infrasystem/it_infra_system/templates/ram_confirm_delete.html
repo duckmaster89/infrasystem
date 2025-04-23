@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>Confirmar Eliminación</h3>
+        </div>
+        <div class="card-body">
+            <p>¿Está seguro que desea eliminar la RAM con ID {{ ram.ram_id }} y cantidad {{ ram.cantidad }}GB?</p>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+                <a href="{% url 'list_rams' %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 
